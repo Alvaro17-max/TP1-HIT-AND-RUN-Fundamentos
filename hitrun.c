@@ -612,30 +612,31 @@ void mover_autos(juego_t *juego)
  * Post condiciones: Avanza 1 casillero todos los vagones en forma de anillo cerrado. Si la locomotora alcanza una esquina del circuito, activa el frenado de la formación por 5 turnos.
  */
 
-void mover_monorriel(monorriel_t *monorriel)
+void mover_monorriel(juego_t *juego)
 {
-    const int FRENADO_ESTACION_MONORRIEL = 5;
-
-    if (monorriel == NULL)
-        return;
-
-    if (monorriel->movimientos_frenado > 0)
+    if (juego->monorriel.movimientos_frenado > 0)
     {
-        monorriel->movimientos_frenado--;
-        return;
+        juego->monorriel.movimientos_frenado--;
     }
-
-    for (int i = 0; i < monorriel->tope_posiciones; i++)
+    else
     {
-        monorriel->posiciones[i]++;
-        if (monorriel->posiciones[i] >= monorriel->tope_recorrido)
-            monorriel->posiciones[i] = 0;
+        for (int vagon = juego->monorriel.tope_posiciones - 1; vagon > 0; vagon--)
+        {
+            juego->monorriel.posiciones[vagon] = juego->monorriel.posiciones[vagon - 1];
+        }
+        juego->monorriel.posiciones[0]++;
+        if (juego->monorriel.posiciones[0] >= juego->monorriel.tope_recorrido)
+        {
+            juego->monorriel.posiciones[0] = 0;
+        }
+        int indice_nuevo_cabeza = juego->monorriel.posiciones[0];
+        coordenada_t coord_nueva_cabeza = juego->monorriel.recorrido[indice_nuevo_cabeza];
+        if (es_esquina_monorriel(coord_nueva_cabeza))
+        {
+            juego->monorriel.movimientos_frenado = 5;
+        }
     }
-
-    if (es_esquina_monorriel(monorriel->recorrido[monorriel->posiciones[0]]))
-        monorriel->movimientos_frenado = FRENADO_ESTACION_MONORRIEL;
 }
-
 /*
  * Pre condiciones: 'juego' debe apuntar a una estructura válida.
  * Post condiciones: Carga un vehículo nuevo en el vector de tráfico utilizando obtener_recorrido si no se superó el límite de MAX_AUTOS. Incrementa el tope.
