@@ -23,7 +23,7 @@ const int CANT_DIRRCCIONES_CELDAS = 4;
 const int CANT_INICIAL_AUTOS = 6;
 const int NAFTA_MIN_AUTO = 30;
 const int VEL_MIN_AUTO = 1;
-const int MOV_FRENADO_INICIAL = 0;
+const int MOV_INICIAL_FRENADO = 0;
 const int FRECUENCIA_NUEVO_AUTO = 5;
 
 const int POS_MIN_FIL_MONORRIEL = 1;
@@ -47,8 +47,9 @@ const char TIPO_ANCLA = 'C';
  * columna) coincide con los valores de la posicion2 (fila, columna). Devuelve
  * -false- en caso contrario
  */
-bool son_posiciones_iguales(coordenada_t posicion1, coordenada_t posicion2) {
-  return (posicion1.fil == posicion2.fil && posicion1.col == posicion2.col);
+bool son_posiciones_iguales(coordenada_t posicion1, coordenada_t posicion2)
+{
+    return (posicion1.fil == posicion2.fil && posicion1.col == posicion2.col);
 }
 
 /*
@@ -56,10 +57,11 @@ bool son_posiciones_iguales(coordenada_t posicion1, coordenada_t posicion2) {
  * Post condiciones: Devuelve la distancia Manhattan (la distancia entre ellos
  * es la suma de los valores absolutos de las diferencias de las coordenadas)
  */
-int distancia_manhattan(coordenada_t posicion1, coordenada_t posicion2) {
-  int distancia_filas = abs(posicion1.fil - posicion2.fil);
-  int distancia_columnas = abs(posicion1.col - posicion2.col);
-  return distancia_filas + distancia_columnas;
+int distancia_manhattan(coordenada_t posicion1, coordenada_t posicion2)
+{
+    int distancia_filas = abs(posicion1.fil - posicion2.fil);
+    int distancia_columnas = abs(posicion1.col - posicion2.col);
+    return distancia_filas + distancia_columnas;
 }
 
 /*
@@ -67,10 +69,11 @@ int distancia_manhattan(coordenada_t posicion1, coordenada_t posicion2) {
  * Post condiciones: Devuelve true si la coordenada de la posicion se encuentra
  * dentro de los límites del terreno (0 a 24) inckusiives
  */
-bool es_posicion_dentro_del_rango(coordenada_t posicion) {
-  return (posicion.fil >= MIN_FIL_POSICION &&
-          posicion.fil <= MAX_FIL_POSICION &&
-          posicion.col >= MIN_COL_POSICION && posicion.col <= MAX_COL_POSICION);
+bool es_posicion_dentro_del_rango(coordenada_t posicion)
+{
+    return (posicion.fil >= MIN_FIL_POSICION &&
+            posicion.fil <= MAX_FIL_POSICION &&
+            posicion.col >= MIN_COL_POSICION && posicion.col <= MAX_COL_POSICION);
 }
 
 /*
@@ -80,18 +83,22 @@ bool es_posicion_dentro_del_rango(coordenada_t posicion) {
  * Post condiciones: Devuelve true si la coordenada coincide con alguna calle
  * registrada en el vector, o false en caso contrario.
  */
-bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles,
-              coordenada_t posicion) {
-  bool en_calle = false;
-  int indice_calle = 0;
-  while (!en_calle && (indice_calle < tope_calles)) {
-    if (son_posiciones_iguales(calles[indice_calle], posicion)) {
-      en_calle = true;
-    } else {
-      indice_calle++;
+bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles, coordenada_t posicion)
+{
+    bool en_calle = false;
+    int indice_calle = 0;
+    while (!en_calle && (indice_calle < tope_calles))
+    {
+        if (son_posiciones_iguales(calles[indice_calle], posicion))
+        {
+            en_calle = true;
+        }
+        else
+        {
+            indice_calle++;
+        }
     }
-  }
-  return en_calle;
+    return en_calle;
 }
 
 /*
@@ -105,20 +112,25 @@ bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles,
  * mayor de todas las calles)
  */
 
-bool es_calle_vecina(coordenada_t posicion, coordenada_t calles[MAX_CALLES],
-                     int tope_calles) {
-  bool es_vecina = false;
-  if (!es_calle(calles, tope_calles, posicion)) { // si no es una calle //
-    int i = 0;
-    while (!es_vecina && (i < tope_calles)) {
-      if (distancia_manhattan(posicion, calles[i]) == 1) {
-        es_vecina = true;
-      } else {
-        i++;
-      }
+bool es_calle_vecina(coordenada_t posicion, coordenada_t calles[MAX_CALLES], int tope_calles)
+{
+    bool es_vecina = false;
+    if (!es_calle(calles, tope_calles, posicion))
+    { // si no es una calle //
+        int i = 0;
+        while (!es_vecina && (i < tope_calles))
+        {
+            if (distancia_manhattan(posicion, calles[i]) == 1)
+            {
+                es_vecina = true;
+            }
+            else
+            {
+                i++;
+            }
+        }
     }
-  }
-  return es_vecina;
+    return es_vecina;
 }
 
 /* Pre condiciones: -
@@ -126,15 +138,16 @@ bool es_calle_vecina(coordenada_t posicion, coordenada_t calles[MAX_CALLES],
  * alguna de las 4 esquinas del monorriel (1,1), (1,23), (23,23) o (23,1).
  */
 
-bool es_esquina_monorriel(coordenada_t posicion) {
-  return (posicion.fil == POS_MIN_FIL_MONORRIEL &&
-          posicion.col == POS_MIN_COL_MONORRIEL) || // (1,1)
-         (posicion.fil == POS_MIN_FIL_MONORRIEL &&
-          posicion.col == POS_MAX_COL_MONORRIEL) || // (1,23)
-         (posicion.fil == POS_MAX_FIL_MONORRIEL &&
-          posicion.col == POS_MAX_COL_MONORRIEL) || // (23,23)
-         (posicion.fil == POS_MAX_FIL_MONORRIEL &&
-          posicion.col == POS_MIN_COL_MONORRIEL); //(23,1)
+bool es_esquina_monorriel(coordenada_t posicion)
+{
+    return (posicion.fil == POS_MIN_FIL_MONORRIEL &&
+            posicion.col == POS_MIN_COL_MONORRIEL) || // (1,1)
+           (posicion.fil == POS_MIN_FIL_MONORRIEL &&
+            posicion.col == POS_MAX_COL_MONORRIEL) || // (1,23)
+           (posicion.fil == POS_MAX_FIL_MONORRIEL &&
+            posicion.col == POS_MAX_COL_MONORRIEL) || // (23,23)
+           (posicion.fil == POS_MAX_FIL_MONORRIEL &&
+            posicion.col == POS_MIN_COL_MONORRIEL); //(23,1)
 }
 
 /* Pre condiciones : El monorriel debe tener su recorrido cargadp en la memoria
@@ -144,17 +157,22 @@ bool es_esquina_monorriel(coordenada_t posicion) {
  * columna de la coordenada "posicion"  pasada por paramtero. Devuelve false en
  * caso contrario
  */
-bool es_recorrido_monorriel(coordenada_t posicion, monorriel_t monorriel) {
-  bool encontrado = false;
-  int i = 0;
-  while (!encontrado && (i < monorriel.tope_recorrido)) {
-    if (son_posiciones_iguales(monorriel.recorrido[i], posicion)) {
-      encontrado = true;
-    } else {
-      i++;
+bool es_recorrido_monorriel(coordenada_t posicion, monorriel_t monorriel)
+{
+    bool encontrado = false;
+    int i = 0;
+    while (!encontrado && (i < monorriel.tope_recorrido))
+    {
+        if (son_posiciones_iguales(monorriel.recorrido[i], posicion))
+        {
+            encontrado = true;
+        }
+        else
+        {
+            i++;
+        }
     }
-  }
-  return encontrado;
+    return encontrado;
 }
 
 /* Pre condiciones : El vector de vehiculos debe estar correctamente
@@ -168,16 +186,16 @@ bool es_recorrido_monorriel(coordenada_t posicion, monorriel_t monorriel) {
  * Restamos 1 por cada auto quitado en puntero *tope_vehiculos.
  */
 
-void eliminar_vehiculo(vehiculo_t vehiculos[MAX_AUTOS], int *tope_vehiculos,
-                       int posicion_vehiculo) {
-  int i = posicion_vehiculo;
+void eliminar_vehiculo(vehiculo_t vehiculos[MAX_AUTOS], int *tope_vehiculos, int posicion_vehiculo)
+{
+    int i = posicion_vehiculo;
+    while (i < (*tope_vehiculos) - 1)
+    {
+        vehiculos[i] = vehiculos[i + 1];
+        i++;
+    }
 
-  while (i < (*tope_vehiculos) - 1) {
-    vehiculos[i] = vehiculos[i + 1];
-    i++;
-  }
-
-  (*tope_vehiculos) -= 1;
+    (*tope_vehiculos) -= 1;
 }
 
 /*
@@ -186,18 +204,61 @@ void eliminar_vehiculo(vehiculo_t vehiculos[MAX_AUTOS], int *tope_vehiculos,
  * "coordenada_homero" y "coordenada_auto" y guarda el menor en la direccion de
  * memoria apuntada por "posicion_inicio" y "posicion_fin"
  */
-void obtener_extremos_tramo(int coordenada_homero, int coordenada_auto,
-                            int *posicion_inicio, int *posicion_fin) {
-  if (coordenada_homero < coordenada_auto) {
-    *posicion_inicio = coordenada_homero;
-    *posicion_fin = coordenada_auto;
-  } else {
-    *posicion_inicio = coordenada_auto;
-    *posicion_fin = coordenada_homero;
-  }
+void obtener_extremos_tramo(int coordenada_homero, int coordenada_auto, int *posicion_inicio, int *posicion_fin)
+{
+    if (coordenada_homero < coordenada_auto)
+    {
+        *posicion_inicio = coordenada_homero;
+        *posicion_fin = coordenada_auto;
+    }
+    else
+    {
+        *posicion_inicio = coordenada_auto;
+        *posicion_fin = coordenada_homero;
+    }
 }
 
-bool verificar_tramo_calle() { return false; }
+bool verificar_camino_horizontal(int columna_inicial, int columna_final, int fila_fija, coordenada_t calles[MAX_CALLES], int tope_calles])
+{
+    bool es_continuo = true;
+    int i = columna_inicial + 1;
+    coordenada_t casillero_intermedio;
+    casillero_intermedio.fil = fila_fija;
+    while (es_continuo && (i < columna_final))
+    {
+        casillero_intermedio.col = i;
+        if (!es_calle(calles, tope_calles, casillero_intermedio))
+        {
+            es_continuo = false;
+        }
+        else
+        {
+            i++;
+        }
+    }
+    return es_continuo;
+}
+
+bool verificar_tramo_vertical(int fila_inicial, int fila_final, int columna_fija, coordenada_t calles[MAX_CALLES], int tope_calles)
+{
+    bool es_continuo = true;
+    int i = fila_inicial + 1;
+    coordenada_t casillero_intermedio;
+    casillero_intermedio.col = columna_fija;
+    while (es_continuo && (i < fila_final))
+    {
+        casillero_intermedio.fil = i;
+        if (!es_calle(calles, tope_calles, casillero_intermedio))
+        {
+            es_continuo = false;
+        }
+        else
+        {
+            i++;
+        }
+    }
+    return es_continuo;
+}
 
 /*
  * Pre condiciones: 'posicion_homero' y 'posicion_auto' representan posiciones
@@ -207,30 +268,24 @@ bool verificar_tramo_calle() { return false; }
  * baches.
  */
 
-bool calle_es_continua(coordenada_t posicion_homero, coordenada_t posicion_auto,
-                       coordenada_t calles[MAX_CALLES], int tope_calles) {
-  bool es_continua = true;
-  int posicion_inicio;
-  int posicion_fin;
+bool calle_es_continua(coordenada_t posicion_homero, coordenada_t posicion_auto, coordenada_t calles[MAX_CALLES], int tope_calles)
+{
+    bool es_continua = true;
+    int posicion_inicio;
+    int posicion_fin;
 
-  if (posicion_homero.fil == posicion_auto.fil) {
-    obtener_extremos_tramo(posicion_homero.col, posicion_auto.col,
-                           &posicion_inicio, &posicion_fin);
-    /*es_continua =
-        verificar_tramo_calle(posicion_inicio, posicion_fin,
-                            posicion_homero.fil, true, calles, tope_calles);
-  */
-  }
+    if (posicion_homero.fil == posicion_auto.fil)
+    {
+        obtener_extremos_tramo(posicion_homero.col, posicion_auto.col, &posicion_inicio, &posicion_fin);
+        es_continua = verificar_tramo_horizontal(posicion_inicio, posicion_fin, posicion_homero.fil, calles, tope_calles);
+    }
+    else if (posicion_homero.col == posicion_auto.col)
+    {
+        obtener_extremos_tramo_(posicion_homero.fil, posicion_auto.fil, &posicion_inicio, &posicion_fin);
 
-  else if (posicion_homero.col == posicion_auto.col) {
-    obtener_extremos_tramo(posicion_homero.fil, posicion_auto.fil,
-                           &posicion_inicio, &posicion_fin);
-    /*es_continua =
-        verificar_tramo_calle(posicion_inicio, posicion_fin,
-                              posicion_homero.col, false, calles, tope_calles);
-  */
-  }
-  return es_continua;
+        es_continua = verificar_tramo_vertical(posicion_inicio, posicion_fin, posicion_homero.col, calles, tope_calles);
+    }
+    return es_continua;
 }
 
 /*
@@ -240,28 +295,34 @@ bool calle_es_continua(coordenada_t posicion_homero, coordenada_t posicion_auto,
 
  * Post condiciones: Dvuelve true si la coordenada posicion coincide con la
  ubicacion actual de homero, con cualquier celda que compone el recorrido del
- monoiel o la posicion de algun objeto ya existente. Devuelve False en caso
+ monoriel o la posicion de algun objeto ya existente. Devuelve False en caso
  contrario (si el casillero consultado se encuentre libre).
  */
 
-bool posicion_ocupada(coordenada_t posicion, juego_t *juego) {
-  bool ocupada = false;
-  if (son_posiciones_iguales(juego->homero.posicion, posicion)) {
-    ocupada = true;
-  }
-  if (!ocupada && es_recorrido_monorriel(posicion, juego->monorriel)) {
-    ocupada = true;
-  }
-
-  int i = 0;
-  while (!ocupada && (i < juego->tope_objetos)) {
-    if (son_posiciones_iguales(juego->objetos[i].posicion, posicion)) {
-      ocupada = true;
-    } else {
-      i++;
+bool posicion_ocupada(coordenada_t posicion, juego_t *juego)
+{
+    bool ocupada = false;
+    if (son_posiciones_iguales(juego->homero.posicion, posicion))
+    {
+        ocupada = true;
     }
-  }
-  return ocupada;
+    if (!ocupada && es_recorrido_monorriel(posicion, juego->monorriel))
+    {
+        ocupada = true;
+    }
+    int i = 0;
+    while (!ocupada && (i < juego->tope_objetos))
+    {
+        if (son_posiciones_iguales(juego->objetos[i].posicion, posicion))
+        {
+            ocupada = true;
+        }
+        else
+        {
+            i++;
+        }
+    }
+    return ocupada;
 }
 
 /*
@@ -270,17 +331,17 @@ bool posicion_ocupada(coordenada_t posicion, juego_t *juego) {
  *
  * Post condiciones: Carga las coordenadas iniciales de homero (fila, columna).
  */
-void inicializar_posicion_homero(coordenada_t *posicion) {
-  posicion->fil = FIL_INICIAL_HOMERO;
-  posicion->col = COL_INICIAL_HOMERO;
+void inicializar_posicion_homero(coordenada_t *posicion)
+{
+    posicion->fil = FIL_INICIAL_HOMERO;
+    posicion->col = COL_INICIAL_HOMERO;
 }
 
-void inicializar_cantidad_objetos(int *gruas_disponibles,
-                                  int *policias_disponibles,
-                                  int *turbos_disponibles) {
-  (*gruas_disponibles) = CANT_INICIAL_GRUAS;
-  (*policias_disponibles) = CANT_INICIAL_POLICIAS;
-  (*turbos_disponibles) = CANT_INICIAL_TURBOS;
+void inicializar_cantidad_objetos(int *gruas_disponibles, int *policias_disponibles, int *turbos_disponibles)
+{
+    (*gruas_disponibles) = CANT_INICIAL_GRUAS;
+    (*policias_disponibles) = CANT_INICIAL_POLICIAS;
+    (*turbos_disponibles) = CANT_INICIAL_TURBOS;
 }
 
 /*
@@ -289,31 +350,33 @@ void inicializar_cantidad_objetos(int *gruas_disponibles,
  * posición (19,19), 100 de nafta, ancla en false y la cantidad inicial de
  * herramientas disponibles.
  */
-<<<<<<< HEAD
-void inicializar_personajes(personaje_t *personaje) {
-  if (personaje == NULL)
-=======
 void inicializar_personajes(personaje_t *personaje)
 {
-    if (personaje == NULL)
-        return;
-    personaje->posicion.fil = FIL_INICIAL_HOMERO;
-    personaje->posicion.col = COL_INICIAL_HOMERO;
+    if (personaje != NULL)
+    {
+        personaje->posicion.fil = FIL_INICIAL_HOMERO;
+        personaje->posicion.col = COL_INICIAL_HOMERO;
+    }
+}
 
-    void inicializar_objetos_herramientas(personaje_t * personaje)
+void inicializar_objetos_herramientas(personaje_t *personaje)
+{
+    if (personaje != NULL)
+    {
         personaje->recolecto_ancla = false;
-    personaje->gruas_disponibles = CANT_INICIAL_GRUAS;
-    personaje->policias_disponibles = CANT_INICIAL_POLICIAS;
-    personaje->turbos_disponibles = CANT_INICIAL_TURBOS;
-    personaje->movs_con_turbo = CANT_INICIAL_MOVS_CON_TURBO;
-    personaje->nafta = CANT_INICIAL_NAFTA;
+        personaje->gruas_disponibles = CANT_INICIAL_GRUAS;
+        personaje->policias_disponibles = CANT_INICIAL_POLICIAS;
+        personaje->turbos_disponibles = CANT_INICIAL_TURBOS;
+        personaje->movs_con_turbo = CANT_INICIAL_MOVS_CON_TURBO;
+        personaje->nafta = CANT_INICIAL_NAFTA;
+    }
 }
 
 /*
  * Pre condiciones: 'vehiculos' debe ser un vector de tamaño MAX_AUTOS y 'tope_vehiculos' debe ser un puntero válido a entero.
  * Post condiciones: Inicializa los 6 autos del comienzo del juego asignándoles un recorrido de utiles.h, posición inicial 0, y nafta (30-50) y velocidad (1-4) aleatorias. Actualiza el tope.
  */
-void inicializar_vehiculos(vehiculo_t vehiculos[MAX_AUTOS], int *tope_vehiculos)
+/*void inicializar_vehiculos(vehiculo_t vehiculos[MAX_AUTOS], int *tope_vehiculos)
 {
     if (tope_vehiculos == NULL)
         return;
@@ -325,9 +388,25 @@ void inicializar_vehiculos(vehiculo_t vehiculos[MAX_AUTOS], int *tope_vehiculos)
         vehiculos[i].posicion = 0;
         vehiculos[i].nafta = (int)(rand() % 21) + NAFTA_MIN_AUTO;
         vehiculos[i].velocidad = (int)(rand() % 4) + VEL_MIN_AUTO;
-        vehiculos[i].movimientos_frenado = MOV_FRENADO_INICIAL;
+        vehiculos[i].movimientos_frenado = MOV_INICIAL_FRENADO;
         (*tope_vehiculos)++;
     }
+
+Inicialización de Vehículos
+Cada vehículo inicia con nafta entre 30 y 50 inclusive.
+Cada vehículo inicia con velocidad entre 1 y 4 inclusive.
+Cada vehículo inicia con un recorrido dentro de los límites del terreno.
+Cada vehículo inicia con posición 0 en su recorrido.
+Cada vehículo inicia con 0 movimientos de frenado.
+}*/
+
+void inicializar_auto_individual(vehiculo_t *auto_nuevo)
+{
+    obtener_recorrido(auto_nuevo->recorrido, &(auto_nuevo->tope_recorrido));
+    auto_nuevo->posicion = 0;
+    auto_nuevo->nafta = (rand() % 21) + 30;
+    auto_nuevo->velocidad = (rand() % 4) + 30;
+    auto_nuevo->movimientos_frenado =
 }
 
 /*
@@ -674,7 +753,7 @@ void generar_auto_nuevo(juego_t *juego)
         juego->vehiculos[idx].posicion = 0;
         juego->vehiculos[idx].nafta = (int)(rand() % 21) + NAFTA_MIN_AUTO;  // Entre 30 y 50
         juego->vehiculos[idx].velocidad = (int)(rand() % 4) + VEL_MIN_AUTO; // Entre 1 y 4
-        juego->vehiculos[idx].movimientos_frenado = MOV_FRENADO_INICIAL;
+        juego->vehiculos[idx].movimientos_frenado = MOV_INICIAL_FRENADO;
         juego->tope_vehiculos++;
     }
 }
@@ -686,16 +765,15 @@ void generar_auto_nuevo(juego_t *juego)
 
 void chequear_reacciones_finales(juego_t *juego)
 {
->>>>>>> 95800a389ee2b789c10d75d202d1eef313cead8d
     return;
-  inicializar_posicion_homero(&personaje->posicion);
-  personaje->recolecto_ancla = false;
+    inicializar_posicion_homero(&personaje->posicion);
+    personaje->recolecto_ancla = false;
 
-  inicializar_cantidad_objetos(&personaje->gruas_disponibles,
-                               &personaje->policias_disponibles,
-                               &personaje->turbos_disponibles);
-  personaje->movs_con_turbo = CANT_INICIAL_MOVS_CON_TURBO;
-  personaje->nafta = CANT_INICIAL_NAFTA;
+    inicializar_cantidad_objetos(&personaje->gruas_disponibles,
+                                 &personaje->policias_disponibles,
+                                 &personaje->turbos_disponibles);
+    personaje->movs_con_turbo = CANT_INICIAL_MOVS_CON_TURBO;
+    personaje->nafta = CANT_INICIAL_NAFTA;
 }
 
 /*
@@ -706,45 +784,52 @@ void chequear_reacciones_finales(juego_t *juego)
  * Actualiza el tope.
  */
 void inicializar_vehiculos(vehiculo_t vehiculos[MAX_AUTOS],
-                           int *tope_vehiculos) {
-  if (tope_vehiculos == NULL)
-    return;
-  *tope_vehiculos = 0;
+                           int *tope_vehiculos)
+{
+    if (tope_vehiculos == NULL)
+        return;
+    *tope_vehiculos = 0;
 
-  for (int i = 0; i < CANT_INICIAL_AUTOS; i++) {
-    obtener_recorrido(vehiculos[i].recorrido, &(vehiculos[i].tope_recorrido));
-    vehiculos[i].posicion = 0;
-    vehiculos[i].nafta = (int)(rand() % 21) + NAFTA_MIN_AUTO;
-    vehiculos[i].velocidad = (int)(rand() % 4) + VEL_MIN_AUTO;
-    vehiculos[i].movimientos_frenado = MOV_FRENADO_INICIAL;
-    (*tope_vehiculos)++;
-  }
+    for (int i = 0; i < CANT_INICIAL_AUTOS; i++)
+    {
+        obtener_recorrido(vehiculos[i].recorrido, &(vehiculos[i].tope_recorrido));
+        vehiculos[i].posicion = 0;
+        vehiculos[i].nafta = (int)(rand() % 21) + NAFTA_MIN_AUTO;
+        vehiculos[i].velocidad = (int)(rand() % 4) + VEL_MIN_AUTO;
+        vehiculos[i].movimientos_frenado = MOV_INICIAL_FRENADO;
+        (*tope_vehiculos)++;
+    }
 }
 
-int inicializar_recorrido_monorriel(coordenada_t recorrido[MAX_RECORRIDO]) {
-  int tope = 0;
+int inicializar_recorrido_monorriel(coordenada_t recorrido[MAX_RECORRIDO])
+{
+    int tope = 0;
 
-  for (int f = POS_MIN_FIL_MONORRIEL; f < POS_MAX_FIL_MONORRIEL; f++) {
-    recorrido[tope].fil = f;
-    recorrido[tope].col = POS_MIN_COL_MONORRIEL;
-    tope++;
-  }
-  for (int c = POS_MIN_COL_MONORRIEL; c < POS_MAX_COL_MONORRIEL; c++) {
-    recorrido[tope].fil = POS_MAX_FIL_MONORRIEL;
-    recorrido[tope].col = c;
-    tope++;
-  }
-  for (int f = POS_MAX_FIL_MONORRIEL; f > POS_MIN_FIL_MONORRIEL; f--) {
-    recorrido[tope].fil = f;
-    recorrido[tope].col = POS_MAX_COL_MONORRIEL;
-    tope++;
-  }
-  for (int c = POS_MAX_COL_MONORRIEL; c > POS_MIN_FIL_MONORRIEL; c--) {
-    recorrido[tope].fil = POS_MIN_FIL_MONORRIEL;
-    recorrido[tope].col = c;
-    tope++;
-  }
-  return tope;
+    for (int f = POS_MIN_FIL_MONORRIEL; f < POS_MAX_FIL_MONORRIEL; f++)
+    {
+        recorrido[tope].fil = f;
+        recorrido[tope].col = POS_MIN_COL_MONORRIEL;
+        tope++;
+    }
+    for (int c = POS_MIN_COL_MONORRIEL; c < POS_MAX_COL_MONORRIEL; c++)
+    {
+        recorrido[tope].fil = POS_MAX_FIL_MONORRIEL;
+        recorrido[tope].col = c;
+        tope++;
+    }
+    for (int f = POS_MAX_FIL_MONORRIEL; f > POS_MIN_FIL_MONORRIEL; f--)
+    {
+        recorrido[tope].fil = f;
+        recorrido[tope].col = POS_MAX_COL_MONORRIEL;
+        tope++;
+    }
+    for (int c = POS_MAX_COL_MONORRIEL; c > POS_MIN_FIL_MONORRIEL; c--)
+    {
+        recorrido[tope].fil = POS_MIN_FIL_MONORRIEL;
+        recorrido[tope].col = c;
+        tope++;
+    }
+    return tope;
 }
 
 /*
@@ -753,67 +838,80 @@ int inicializar_recorrido_monorriel(coordenada_t recorrido[MAX_RECORRIDO]) {
  * periférico contra las agujas del reloj, inicializa el tope de recorrido y
  * ubica los 4 vagones al inicio del camino.
  */
-void inicializar_monorriel(monorriel_t *monorriel) {
-  if (monorriel == NULL)
-    return;
+void inicializar_monorriel(monorriel_t *monorriel)
+{
+    if (monorriel == NULL)
+        return;
 
-  monorriel->tope_recorrido =
-      inicializar_recorrido_monorriel(monorriel->recorrido);
-  monorriel->movimientos_frenado = 0;
-  monorriel->tope_posiciones = CANT_VAGONES;
-  coordenada_t metas_vagones[] = {{1, 1}, {1, 2}, {1, 3}, {1, 4}};
+    monorriel->tope_recorrido =
+        inicializar_recorrido_monorriel(monorriel->recorrido);
+    monorriel->movimientos_frenado = 0;
+    monorriel->tope_posiciones = CANT_VAGONES;
+    coordenada_t metas_vagones[] = {{1, 1}, {1, 2}, {1, 3}, {1, 4}};
 
-  for (int vagon = 0; vagon < CANT_VAGONES; vagon++) {
-    for (int j = 0; j < monorriel->tope_recorrido; j++) {
-      if (monorriel->recorrido[j].fil == metas_vagones[vagon].fil &&
-          monorriel->recorrido[j].col == metas_vagones[vagon].col) {
-        monorriel->posiciones[vagon] = j;
-        break;
-      }
+    for (int vagon = 0; vagon < CANT_VAGONES; vagon++)
+    {
+        for (int j = 0; j < monorriel->tope_recorrido; j++)
+        {
+            if (monorriel->recorrido[j].fil == metas_vagones[vagon].fil &&
+                monorriel->recorrido[j].col == metas_vagones[vagon].col)
+            {
+                monorriel->posiciones[vagon] = j;
+                break;
+            }
+        }
     }
-  }
 }
-void inicializar_lomas_burro(juego_t *juego) {
-  for (int i = 0; i < CANT_LOMAS_BURRO; i++) {
-    coordenada_t pos_aleatoria;
-    do {
-      int indice_calle = rand() % juego->tope_calles;
-      pos_aleatoria = juego->calles[indice_calle];
-    } while (posicion_ocupada(pos_aleatoria, juego));
-    juego->objetos[juego->tope_objetos].tipo = TIPO_LOMA_BURRO;
-    juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
-    juego->tope_objetos++;
-  }
-}
-
-void inicializar_estaciones_servicios(juego_t *juego) {
-  for (int i = 0; i < CANT_ESTACIONES_SERVICIO; i++) {
-    coordenada_t pos_aleatoria;
-    do {
-      pos_aleatoria.fil = rand() % MAX_FILAS;
-      pos_aleatoria.col = rand() % MAX_COLUMNAS;
-    } while (
-        !es_calle_vecina(pos_aleatoria, juego->calles, juego->tope_calles) ||
-        posicion_ocupada(pos_aleatoria, juego));
-    juego->objetos[juego->tope_objetos].tipo = TIPO_ESTACION;
-    juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
-    juego->tope_objetos++;
-  }
+void inicializar_lomas_burro(juego_t *juego)
+{
+    for (int i = 0; i < CANT_LOMAS_BURRO; i++)
+    {
+        coordenada_t pos_aleatoria;
+        do
+        {
+            int indice_calle = rand() % juego->tope_calles;
+            pos_aleatoria = juego->calles[indice_calle];
+        } while (posicion_ocupada(pos_aleatoria, juego));
+        juego->objetos[juego->tope_objetos].tipo = TIPO_LOMA_BURRO;
+        juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
+        juego->tope_objetos++;
+    }
 }
 
-void inicializar_semaforos(juego_t *juego) {
-  for (int i = 0; i < CANT_SEMAFOROS; i++) {
-    coordenada_t pos_aleatoria;
-    do {
-      pos_aleatoria.fil = rand() % MAX_FILAS;
-      pos_aleatoria.col = rand() % MAX_COLUMNAS;
-    } while (
-        !es_calle_vecina(pos_aleatoria, juego->calles, juego->tope_calles) ||
-        posicion_ocupada(pos_aleatoria, juego));
-    juego->objetos[juego->tope_objetos].tipo = TIPO_SEMAFORO;
-    juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
-    juego->tope_objetos++;
-  }
+void inicializar_estaciones_servicios(juego_t *juego)
+{
+    for (int i = 0; i < CANT_ESTACIONES_SERVICIO; i++)
+    {
+        coordenada_t pos_aleatoria;
+        do
+        {
+            pos_aleatoria.fil = rand() % MAX_FILAS;
+            pos_aleatoria.col = rand() % MAX_COLUMNAS;
+        } while (
+            !es_calle_vecina(pos_aleatoria, juego->calles, juego->tope_calles) ||
+            posicion_ocupada(pos_aleatoria, juego));
+        juego->objetos[juego->tope_objetos].tipo = TIPO_ESTACION;
+        juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
+        juego->tope_objetos++;
+    }
+}
+
+void inicializar_semaforos(juego_t *juego)
+{
+    for (int i = 0; i < CANT_SEMAFOROS; i++)
+    {
+        coordenada_t pos_aleatoria;
+        do
+        {
+            pos_aleatoria.fil = rand() % MAX_FILAS;
+            pos_aleatoria.col = rand() % MAX_COLUMNAS;
+        } while (
+            !es_calle_vecina(pos_aleatoria, juego->calles, juego->tope_calles) ||
+            posicion_ocupada(pos_aleatoria, juego));
+        juego->objetos[juego->tope_objetos].tipo = TIPO_SEMAFORO;
+        juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
+        juego->tope_objetos++;
+    }
 }
 
 /*
@@ -822,17 +920,19 @@ void inicializar_semaforos(juego_t *juego) {
  * el mapa las 10 lomas, 20 estaciones de servicio, 15 semáforos y el ancla
  * respetando las reglas de adyacencia y superposición.
  */
-void inicializar_objetos(juego_t *juego) {
-  if (juego == NULL)
-    return;
-  juego->tope_objetos = 0;
+void inicializar_objetos(juego_t *juego)
+{
+    if (juego == NULL)
+        return;
+    juego->tope_objetos = 0;
 
-  inicializar_lomas_burro(juego);
-  inicializar_estaciones_servicios(juego);
-  do {
-    int indice_calle = rand() % juego->tope_calles;
-    juego->ancla = juego->calles[indice_calle];
-  } while (posicion_ocupada(juego->ancla, juego));
+    inicializar_lomas_burro(juego);
+    inicializar_estaciones_servicios(juego);
+    do
+    {
+        int indice_calle = rand() % juego->tope_calles;
+        juego->ancla = juego->calles[indice_calle];
+    } while (posicion_ocupada(juego->ancla, juego));
 }
 
 /*
@@ -841,15 +941,16 @@ void inicializar_objetos(juego_t *juego) {
  * partida, cargando las calles de la cátedra, a Homero, los vehículos, el
  * monorriel y los objetos aleatorios.
  */
-void inicializar_juego(juego_t *juego) {
-  if (juego == NULL)
-    return;
-  juego->movs_realizados = 0;
-  obtener_calles(juego->calles, &(juego->tope_calles));
-  inicializar_personajes(&(juego->homero));
-  inicializar_vehiculos(juego->vehiculos, &(juego->tope_vehiculos));
-  inicializar_monorriel(&(juego->monorriel));
-  inicializar_objetos(juego);
+void inicializar_juego(juego_t *juego)
+{
+    if (juego == NULL)
+        return;
+    juego->movs_realizados = 0;
+    obtener_calles(juego->calles, &(juego->tope_calles));
+    inicializar_personajes(&(juego->homero));
+    inicializar_vehiculos(juego->vehiculos, &(juego->tope_vehiculos));
+    inicializar_monorriel(&(juego->monorriel));
+    inicializar_objetos(juego);
 }
 
 /*
@@ -859,32 +960,39 @@ void inicializar_juego(juego_t *juego) {
  * estación de servicio para recargar 30 L de nafta.
  */
 
-void aplicar_reacciones_homero(juego_t *juego) {
-  if (juego == NULL)
-    return;
+void aplicar_reacciones_homero(juego_t *juego)
+{
+    if (juego == NULL)
+        return;
 
-  // 1. El ancla se chequea e interactúa siempre en caliente
-  if (!juego->homero.recolecto_ancla) {
-    if (juego->homero.posicion.fil == juego->ancla.fil &&
-        juego->homero.posicion.col == juego->ancla.col) {
-      juego->homero.recolecto_ancla = true;
-    }
-  }
-
-  for (int i = 0; i < juego->tope_objetos; i++) {
-    if (juego->objetos[i].tipo == TIPO_ESTACION) {
-      if (distancia_manhattan(juego->homero.posicion,
-                              juego->objetos[i].posicion) == 1) {
-        juego->homero.nafta += REFUELLO_ESTACION;
-
-        // Clavamos el límite máximo infranqueable exigido por el test en
-        // caliente
-        if (juego->homero.nafta > NAFTA_MAX_HOMERO) {
-          juego->homero.nafta = NAFTA_MAX_HOMERO;
+    // 1. El ancla se chequea e interactúa siempre en caliente
+    if (!juego->homero.recolecto_ancla)
+    {
+        if (juego->homero.posicion.fil == juego->ancla.fil &&
+            juego->homero.posicion.col == juego->ancla.col)
+        {
+            juego->homero.recolecto_ancla = true;
         }
-      }
     }
-  }
+
+    for (int i = 0; i < juego->tope_objetos; i++)
+    {
+        if (juego->objetos[i].tipo == TIPO_ESTACION)
+        {
+            if (distancia_manhattan(juego->homero.posicion,
+                                    juego->objetos[i].posicion) == 1)
+            {
+                juego->homero.nafta += REFUELLO_ESTACION;
+
+                // Clavamos el límite máximo infranqueable exigido por el test en
+                // caliente
+                if (juego->homero.nafta > NAFTA_MAX_HOMERO)
+                {
+                    juego->homero.nafta = NAFTA_MAX_HOMERO;
+                }
+            }
+        }
+    }
 }
 
 /*
@@ -895,67 +1003,74 @@ void aplicar_reacciones_homero(juego_t *juego) {
  * paso a paso.
  */
 
-bool mover_homero(juego_t *juego, char movimiento) {
-  if (juego == NULL)
-    return false;
+bool mover_homero(juego_t *juego, char movimiento)
+{
+    if (juego == NULL)
+        return false;
 
-  int pasos = (juego->homero.movs_con_turbo > 0) ? 2 : 1;
-  int gasto_nafta = (juego->homero.movs_con_turbo > 0) ? NAFTA_GASTO_TURBO : 1;
-  int nafta_antes_de_moverse = juego->homero.nafta;
-  coordenada_t pos_inicial = juego->homero.posicion;
+    int pasos = (juego->homero.movs_con_turbo > 0) ? 2 : 1;
+    int gasto_nafta = (juego->homero.movs_con_turbo > 0) ? NAFTA_GASTO_TURBO : 1;
+    int nafta_antes_de_moverse = juego->homero.nafta;
+    coordenada_t pos_inicial = juego->homero.posicion;
 
-  juego->homero.nafta -= gasto_nafta;
-  if (juego->homero.nafta < 0)
-    juego->homero.nafta = 0;
+    juego->homero.nafta -= gasto_nafta;
+    if (juego->homero.nafta < 0)
+        juego->homero.nafta = 0;
 
-  bool se_movio_al_menos_un_paso = false;
+    bool se_movio_al_menos_un_paso = false;
 
-  for (int i = 0; i < pasos; i++) {
-    int sig_fil = juego->homero.posicion.fil;
-    int sig_col = juego->homero.posicion.col;
+    for (int i = 0; i < pasos; i++)
+    {
+        int sig_fil = juego->homero.posicion.fil;
+        int sig_col = juego->homero.posicion.col;
 
-    if (movimiento == 'W')
-      sig_fil--;
-    if (movimiento == 'S')
-      sig_fil++;
-    if (movimiento == 'A')
-      sig_col--;
-    if (movimiento == 'D')
-      sig_col++;
+        if (movimiento == 'W')
+            sig_fil--;
+        if (movimiento == 'S')
+            sig_fil++;
+        if (movimiento == 'A')
+            sig_col--;
+        if (movimiento == 'D')
+            sig_col++;
 
-    if (sig_fil < 0 || sig_fil >= MAX_FILAS || sig_col < 0 ||
-        sig_col >= MAX_COLUMNAS)
-      break;
+        if (sig_fil < 0 || sig_fil >= MAX_FILAS || sig_col < 0 ||
+            sig_col >= MAX_COLUMNAS)
+            break;
 
-    /*coordenada_t paso_teorico = {sig_fil, sig_col};
-    if (!es_calle(&paso_teorico, juego->calles, juego->tope_calles))
-      break;
-    */
+        /*coordenada_t paso_teorico = {sig_fil, sig_col};
+        if (!es_calle(&paso_teorico, juego->calles, juego->tope_calles))
+          break;
+        */
 
-    juego->homero.posicion.fil = sig_fil;
-    juego->homero.posicion.col = sig_col;
-    se_movio_al_menos_un_paso = true;
+        juego->homero.posicion.fil = sig_fil;
+        juego->homero.posicion.col = sig_col;
+        se_movio_al_menos_un_paso = true;
 
-    if (i == 1 && pasos == 2) {
-      int nafta_antes_paso2 = juego->homero.nafta;
+        if (i == 1 && pasos == 2)
+        {
+            int nafta_antes_paso2 = juego->homero.nafta;
 
-      aplicar_reacciones_homero(juego);
+            aplicar_reacciones_homero(juego);
 
-      if (juego->homero.nafta > nafta_antes_paso2 &&
-          nafta_antes_de_moverse == NAFTA_MAX_HOMERO) {
-        juego->homero.nafta = nafta_antes_paso2;
-      }
-    } else {
-      aplicar_reacciones_homero(juego);
+            if (juego->homero.nafta > nafta_antes_paso2 &&
+                nafta_antes_de_moverse == NAFTA_MAX_HOMERO)
+            {
+                juego->homero.nafta = nafta_antes_paso2;
+            }
+        }
+        else
+        {
+            aplicar_reacciones_homero(juego);
+        }
     }
-  }
 
-  if (!se_movio_al_menos_un_paso) {
-    juego->homero.posicion = pos_inicial;
-    juego->homero.nafta = nafta_antes_de_moverse;
-  }
+    if (!se_movio_al_menos_un_paso)
+    {
+        juego->homero.posicion = pos_inicial;
+        juego->homero.nafta = nafta_antes_de_moverse;
+    }
 
-  return se_movio_al_menos_un_paso;
+    return se_movio_al_menos_un_paso;
 }
 
 /*
@@ -965,51 +1080,62 @@ bool mover_homero(juego_t *juego, char movimiento) {
  * vehículos que completen su recorrido.
  */
 
-void mover_autos(juego_t *juego) {
-  if (juego == NULL)
-    return;
+void mover_autos(juego_t *juego)
+{
+    if (juego == NULL)
+        return;
 
-  int i = 0;
-  while (i < juego->tope_vehiculos) {
+    int i = 0;
+    while (i < juego->tope_vehiculos)
+    {
 
-    if (juego->vehiculos[i].movimientos_frenado > 0) {
-      juego->vehiculos[i].movimientos_frenado--;
-      i++; // Pasamos al siguiente auto
-      continue;
+        if (juego->vehiculos[i].movimientos_frenado > 0)
+        {
+            juego->vehiculos[i].movimientos_frenado--;
+            i++; // Pasamos al siguiente auto
+            continue;
+        }
+        if (juego->vehiculos[i].nafta <= 0)
+        {
+            i++;
+            continue;
+        }
+
+        int casilleros_a_mover = juego->vehiculos[i].velocidad;
+        int casilleros_movidos = 0;
+        bool llego_al_final = false;
+
+        for (int paso = 0; paso < casilleros_a_mover; paso++)
+        {
+            if (juego->vehiculos[i].posicion + 1 >=
+                juego->vehiculos[i].tope_recorrido)
+            {
+                llego_al_final = true;
+                break;
+            }
+            juego->vehiculos[i].posicion++;
+            casilleros_movidos++;
+        }
+
+        juego->vehiculos[i].nafta -= casilleros_movidos;
+        if (juego->vehiculos[i].nafta < 0)
+        {
+            juego->vehiculos[i].nafta = 0;
+        }
+
+        if (llego_al_final)
+        {
+            for (int j = i; j < juego->tope_vehiculos - 1; j++)
+            {
+                juego->vehiculos[j] = juego->vehiculos[j + 1];
+            }
+            juego->tope_vehiculos--;
+        }
+        else
+        {
+            i++;
+        }
     }
-    if (juego->vehiculos[i].nafta <= 0) {
-      i++;
-      continue;
-    }
-
-    int casilleros_a_mover = juego->vehiculos[i].velocidad;
-    int casilleros_movidos = 0;
-    bool llego_al_final = false;
-
-    for (int paso = 0; paso < casilleros_a_mover; paso++) {
-      if (juego->vehiculos[i].posicion + 1 >=
-          juego->vehiculos[i].tope_recorrido) {
-        llego_al_final = true;
-        break;
-      }
-      juego->vehiculos[i].posicion++;
-      casilleros_movidos++;
-    }
-
-    juego->vehiculos[i].nafta -= casilleros_movidos;
-    if (juego->vehiculos[i].nafta < 0) {
-      juego->vehiculos[i].nafta = 0;
-    }
-
-    if (llego_al_final) {
-      for (int j = i; j < juego->tope_vehiculos - 1; j++) {
-        juego->vehiculos[j] = juego->vehiculos[j + 1];
-      }
-      juego->tope_vehiculos--;
-    } else {
-      i++;
-    }
-  }
 }
 
 /*
@@ -1019,25 +1145,32 @@ void mover_autos(juego_t *juego) {
  * activa el frenado de la formación por 5 turnos.
  */
 
-void mover_monorriel(juego_t *juego) {
-  if (juego->monorriel.movimientos_frenado > 0) {
-    juego->monorriel.movimientos_frenado--;
-  } else {
-    for (int vagon = juego->monorriel.tope_posiciones - 1; vagon > 0; vagon--) {
-      juego->monorriel.posiciones[vagon] =
-          juego->monorriel.posiciones[vagon - 1];
+void mover_monorriel(juego_t *juego)
+{
+    if (juego->monorriel.movimientos_frenado > 0)
+    {
+        juego->monorriel.movimientos_frenado--;
     }
-    juego->monorriel.posiciones[0]++;
-    if (juego->monorriel.posiciones[0] >= juego->monorriel.tope_recorrido) {
-      juego->monorriel.posiciones[0] = 0;
+    else
+    {
+        for (int vagon = juego->monorriel.tope_posiciones - 1; vagon > 0; vagon--)
+        {
+            juego->monorriel.posiciones[vagon] =
+                juego->monorriel.posiciones[vagon - 1];
+        }
+        juego->monorriel.posiciones[0]++;
+        if (juego->monorriel.posiciones[0] >= juego->monorriel.tope_recorrido)
+        {
+            juego->monorriel.posiciones[0] = 0;
+        }
+        int indice_nuevo_cabeza = juego->monorriel.posiciones[0];
+        coordenada_t coord_nueva_cabeza =
+            juego->monorriel.recorrido[indice_nuevo_cabeza];
+        if (es_esquina_monorriel(coord_nueva_cabeza))
+        {
+            juego->monorriel.movimientos_frenado = 5;
+        }
     }
-    int indice_nuevo_cabeza = juego->monorriel.posiciones[0];
-    coordenada_t coord_nueva_cabeza =
-        juego->monorriel.recorrido[indice_nuevo_cabeza];
-    if (es_esquina_monorriel(coord_nueva_cabeza)) {
-      juego->monorriel.movimientos_frenado = 5;
-    }
-  }
 }
 
 /*
@@ -1047,19 +1180,21 @@ void mover_monorriel(juego_t *juego) {
  * Incrementa el tope.
  */
 
-void generar_auto_nuevo(juego_t *juego) {
-  if (juego->tope_vehiculos < MAX_AUTOS) {
-    int idx = juego->tope_vehiculos;
-    obtener_recorrido(juego->vehiculos[idx].recorrido,
-                      &(juego->vehiculos[idx].tope_recorrido));
-    juego->vehiculos[idx].posicion = 0;
-    juego->vehiculos[idx].nafta =
-        (int)(rand() % 21) + NAFTA_MIN_AUTO; // Entre 30 y 50
-    juego->vehiculos[idx].velocidad =
-        (int)(rand() % 4) + VEL_MIN_AUTO; // Entre 1 y 4
-    juego->vehiculos[idx].movimientos_frenado = MOV_FRENADO_INICIAL;
-    juego->tope_vehiculos++;
-  }
+void generar_auto_nuevo(juego_t *juego)
+{
+    if (juego->tope_vehiculos < MAX_AUTOS)
+    {
+        int idx = juego->tope_vehiculos;
+        obtener_recorrido(juego->vehiculos[idx].recorrido,
+                          &(juego->vehiculos[idx].tope_recorrido));
+        juego->vehiculos[idx].posicion = 0;
+        juego->vehiculos[idx].nafta =
+            (int)(rand() % 21) + NAFTA_MIN_AUTO; // Entre 30 y 50
+        juego->vehiculos[idx].velocidad =
+            (int)(rand() % 4) + VEL_MIN_AUTO; // Entre 1 y 4
+        juego->vehiculos[idx].movimientos_frenado = MOV_INICIAL_FRENADO;
+        juego->tope_vehiculos++;
+    }
 }
 
 /*
@@ -1079,53 +1214,66 @@ void chequear_reacciones_finales(juego_t *juego) { return; }
  * descontando un uso disponible.
  */
 
-void ejecutar_habilidad(juego_t *juego, char accion) {
-  if (juego == NULL)
-    return;
+void ejecutar_habilidad(juego_t *juego, char accion)
+{
+    if (juego == NULL)
+        return;
 
-  const int DURACION_EFECTO_TURBO = 5;
-  const int DURACION_POLICIA_FRENADO = 5;
+    const int DURACION_EFECTO_TURBO = 5;
+    const int DURACION_POLICIA_FRENADO = 5;
 
-  if (accion == 'T') {
-    if (juego->homero.turbos_disponibles > 0) {
-      juego->homero.movs_con_turbo = DURACION_EFECTO_TURBO;
-      juego->homero.turbos_disponibles--;
-    }
-  }
-
-  else if (accion == 'P') {
-    if (juego->homero.policias_disponibles > 0) {
-      for (int i = 0; i < juego->tope_vehiculos; i++) {
-        juego->vehiculos[i].movimientos_frenado = DURACION_POLICIA_FRENADO;
-      }
-      juego->homero.policias_disponibles--;
-    }
-  }
-
-  else if (accion == 'G') {
-    if (juego->homero.gruas_disponibles > 0) {
-      int i = 0;
-      coordenada_t pos_h = juego->homero.posicion;
-
-      while (i < juego->tope_vehiculos) {
-        int idx = juego->vehiculos[i].posicion;
-        coordenada_t pos_a = juego->vehiculos[i].recorrido[idx];
-
-        if (juego->vehiculos[i].nafta <= 0 &&
-            (pos_h.fil == pos_a.fil || pos_h.col == pos_a.col) &&
-            calle_es_continua(pos_h, pos_a, juego->calles,
-                              juego->tope_calles)) {
-          for (int j = i; j < juego->tope_vehiculos - 1; j++) {
-            juego->vehiculos[j] = juego->vehiculos[j + 1];
-          }
-          juego->tope_vehiculos--;
-        } else {
-          i++;
+    if (accion == 'T')
+    {
+        if (juego->homero.turbos_disponibles > 0)
+        {
+            juego->homero.movs_con_turbo = DURACION_EFECTO_TURBO;
+            juego->homero.turbos_disponibles--;
         }
-      }
-      juego->homero.gruas_disponibles--;
     }
-  }
+
+    else if (accion == 'P')
+    {
+        if (juego->homero.policias_disponibles > 0)
+        {
+            for (int i = 0; i < juego->tope_vehiculos; i++)
+            {
+                juego->vehiculos[i].movimientos_frenado = DURACION_POLICIA_FRENADO;
+            }
+            juego->homero.policias_disponibles--;
+        }
+    }
+
+    else if (accion == 'G')
+    {
+        if (juego->homero.gruas_disponibles > 0)
+        {
+            int i = 0;
+            coordenada_t pos_h = juego->homero.posicion;
+
+            while (i < juego->tope_vehiculos)
+            {
+                int idx = juego->vehiculos[i].posicion;
+                coordenada_t pos_a = juego->vehiculos[i].recorrido[idx];
+
+                if (juego->vehiculos[i].nafta <= 0 &&
+                    (pos_h.fil == pos_a.fil || pos_h.col == pos_a.col) &&
+                    calle_es_continua(pos_h, pos_a, juego->calles,
+                                      juego->tope_calles))
+                {
+                    for (int j = i; j < juego->tope_vehiculos - 1; j++)
+                    {
+                        juego->vehiculos[j] = juego->vehiculos[j + 1];
+                    }
+                    juego->tope_vehiculos--;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            juego->homero.gruas_disponibles--;
+        }
+    }
 }
 
 /*
@@ -1136,69 +1284,85 @@ void ejecutar_habilidad(juego_t *juego, char accion) {
  * tráfico y procesa reacciones.
  */
 
-void mover_entidades(juego_t *juego, char movimiento) {
-  if (juego == NULL)
-    return;
+void mover_entidades(juego_t *juego, char movimiento)
+{
+    if (juego == NULL)
+        return;
 
-  bool estaba_frenado_antes[MAX_AUTOS];
-  for (int i = 0; i < juego->tope_vehiculos; i++) {
-    estaba_frenado_antes[i] = (juego->vehiculos[i].movimientos_frenado > 0);
-  }
-
-  bool exito_movimiento = mover_homero(juego, movimiento);
-
-  if (exito_movimiento) {
-    mover_autos(juego);
-    mover_monorriel(juego);
-
-    juego->movs_realizados++;
-
-    if (juego->homero.movs_con_turbo > 0) {
-      juego->homero.movs_con_turbo--;
+    bool estaba_frenado_antes[MAX_AUTOS];
+    for (int i = 0; i < juego->tope_vehiculos; i++)
+    {
+        estaba_frenado_antes[i] = (juego->vehiculos[i].movimientos_frenado > 0);
     }
 
-    if (juego->movs_realizados % FRECUENCIA_NUEVO_AUTO == 0) {
-      generar_auto_nuevo(juego);
-    }
+    bool exito_movimiento = mover_homero(juego, movimiento);
 
-    const int DURACION_FRENADO_SEMAFORO = 2;
+    if (exito_movimiento)
+    {
+        mover_autos(juego);
+        mover_monorriel(juego);
 
-    for (int i = 0; i < juego->tope_vehiculos; i++) {
-      if (estaba_frenado_antes[i]) {
-        continue;
-      }
+        juego->movs_realizados++;
 
-      int idx_trayecto = juego->vehiculos[i].posicion;
-      coordenada_t pos_auto = juego->vehiculos[i].recorrido[idx_trayecto];
+        if (juego->homero.movs_con_turbo > 0)
+        {
+            juego->homero.movs_con_turbo--;
+        }
 
-      for (int j = 0; j < juego->tope_objetos; j++) {
-        if (juego->objetos[j].tipo == TIPO_SEMAFORO) {
-          if (distancia_manhattan(pos_auto, juego->objetos[j].posicion) == 1) {
-            if (juego->vehiculos[i].movimientos_frenado <
-                DURACION_FRENADO_SEMAFORO) {
-              juego->vehiculos[i].movimientos_frenado =
-                  DURACION_FRENADO_SEMAFORO;
+        if (juego->movs_realizados % FRECUENCIA_NUEVO_AUTO == 0)
+        {
+            generar_auto_nuevo(juego);
+        }
+
+        const int DURACION_FRENADO_SEMAFORO = 2;
+
+        for (int i = 0; i < juego->tope_vehiculos; i++)
+        {
+            if (estaba_frenado_antes[i])
+            {
+                continue;
             }
-          }
-        }
 
-        if (juego->objetos[j].tipo == TIPO_LOMA_BURRO) {
-          if (pos_auto.fil == juego->objetos[j].posicion.fil &&
-              pos_auto.col == juego->objetos[j].posicion.col) {
-            if (juego->vehiculos[i].velocidad > VEL_MIN_AUTO) {
-              juego->vehiculos[i].velocidad--;
+            int idx_trayecto = juego->vehiculos[i].posicion;
+            coordenada_t pos_auto = juego->vehiculos[i].recorrido[idx_trayecto];
+
+            for (int j = 0; j < juego->tope_objetos; j++)
+            {
+                if (juego->objetos[j].tipo == TIPO_SEMAFORO)
+                {
+                    if (distancia_manhattan(pos_auto, juego->objetos[j].posicion) == 1)
+                    {
+                        if (juego->vehiculos[i].movimientos_frenado <
+                            DURACION_FRENADO_SEMAFORO)
+                        {
+                            juego->vehiculos[i].movimientos_frenado =
+                                DURACION_FRENADO_SEMAFORO;
+                        }
+                    }
+                }
+
+                if (juego->objetos[j].tipo == TIPO_LOMA_BURRO)
+                {
+                    if (pos_auto.fil == juego->objetos[j].posicion.fil &&
+                        pos_auto.col == juego->objetos[j].posicion.col)
+                    {
+                        if (juego->vehiculos[i].velocidad > VEL_MIN_AUTO)
+                        {
+                            juego->vehiculos[i].velocidad--;
+                        }
+                    }
+                }
+
+                if (juego->objetos[j].tipo == TIPO_ESTACION)
+                {
+                    if (distancia_manhattan(pos_auto, juego->objetos[j].posicion) == 1)
+                    {
+                        juego->vehiculos[i].nafta += REFUELLO_ESTACION;
+                    }
+                }
             }
-          }
         }
-
-        if (juego->objetos[j].tipo == TIPO_ESTACION) {
-          if (distancia_manhattan(pos_auto, juego->objetos[j].posicion) == 1) {
-            juego->vehiculos[i].nafta += REFUELLO_ESTACION;
-          }
-        }
-      }
     }
-  }
 }
 
 /*
@@ -1208,18 +1372,23 @@ void mover_entidades(juego_t *juego, char movimiento) {
  * habilidades (G, P, T) o hacia la simulación de movimiento (W, A, S, D).
  */
 
-void realizar_jugada(juego_t *juego, char movimiento) {
-  if (juego == NULL)
-    return;
-  if (movimiento >= 'a' && movimiento <= 'z') {
-    movimiento = (char)(movimiento - 'a' + 'A');
-  }
-  if (movimiento == 'G' || movimiento == 'P' || movimiento == 'T') {
-    ejecutar_habilidad(juego, movimiento);
-  } else if (movimiento == 'W' || movimiento == 'S' || movimiento == 'A' ||
-             movimiento == 'D') {
-    mover_entidades(juego, movimiento);
-  }
+void realizar_jugada(juego_t *juego, char movimiento)
+{
+    if (juego == NULL)
+        return;
+    if (movimiento >= 'a' && movimiento <= 'z')
+    {
+        movimiento = (char)(movimiento - 'a' + 'A');
+    }
+    if (movimiento == 'G' || movimiento == 'P' || movimiento == 'T')
+    {
+        ejecutar_habilidad(juego, movimiento);
+    }
+    else if (movimiento == 'W' || movimiento == 'S' || movimiento == 'A' ||
+             movimiento == 'D')
+    {
+        mover_entidades(juego, movimiento);
+    }
 }
 
 /*
@@ -1229,51 +1398,61 @@ void realizar_jugada(juego_t *juego, char movimiento) {
  * imprimir el mapa de Springfield y su HUD de estadísticas por pantalla.
  */
 
-void mostrar_juego(juego_t juego) {
-  char matriz_pantalla[MAX_FILAS][MAX_COLUMNAS];
+void mostrar_juego(juego_t juego)
+{
+    char matriz_pantalla[MAX_FILAS][MAX_COLUMNAS];
 
-  for (int fila = 0; fila < MAX_FILAS; fila++) {
-    for (int columna = 0; columna < MAX_COLUMNAS; columna++) {
-      matriz_pantalla[fila][columna] = 'X';
+    for (int fila = 0; fila < MAX_FILAS; fila++)
+    {
+        for (int columna = 0; columna < MAX_COLUMNAS; columna++)
+        {
+            matriz_pantalla[fila][columna] = 'X';
+        }
     }
-  }
-  for (int i = 0; i < juego.tope_calles; i++) {
-    matriz_pantalla[juego.calles[i].fil][juego.calles[i].col] = ' ';
-  }
-  for (int i = 0; i < juego.tope_objetos; i++) {
-    matriz_pantalla[juego.objetos[i].posicion.fil]
-                   [juego.objetos[i].posicion.col] = juego.objetos[i].tipo;
-  }
-  if (!juego.homero.recolecto_ancla) {
-    matriz_pantalla[juego.ancla.fil][juego.ancla.col] = TIPO_ANCLA;
-  }
-  for (int i = 0; i < juego.monorriel.tope_posiciones; i++) {
-    int idx = juego.monorriel.posiciones[i];
-    matriz_pantalla[juego.monorriel.recorrido[idx].fil]
-                   [juego.monorriel.recorrido[idx].col] = 'M';
-  }
-  for (int i = 0; i < juego.tope_vehiculos; i++) {
-    int idx = juego.vehiculos[i].posicion;
-    matriz_pantalla[juego.vehiculos[i].recorrido[idx].fil]
-                   [juego.vehiculos[i].recorrido[idx].col] = 'A';
-  }
-  matriz_pantalla[juego.homero.posicion.fil][juego.homero.posicion.col] = 'H';
-
-  for (int fila = 0; fila < MAX_FILAS; fila++) {
-    for (int columna = 0; columna < MAX_COLUMNAS; columna++) {
-      printf("%c ", matriz_pantalla[fila][columna]);
+    for (int i = 0; i < juego.tope_calles; i++)
+    {
+        matriz_pantalla[juego.calles[i].fil][juego.calles[i].col] = ' ';
     }
-    printf("\n");
-  }
+    for (int i = 0; i < juego.tope_objetos; i++)
+    {
+        matriz_pantalla[juego.objetos[i].posicion.fil]
+                       [juego.objetos[i].posicion.col] = juego.objetos[i].tipo;
+    }
+    if (!juego.homero.recolecto_ancla)
+    {
+        matriz_pantalla[juego.ancla.fil][juego.ancla.col] = TIPO_ANCLA;
+    }
+    for (int i = 0; i < juego.monorriel.tope_posiciones; i++)
+    {
+        int idx = juego.monorriel.posiciones[i];
+        matriz_pantalla[juego.monorriel.recorrido[idx].fil]
+                       [juego.monorriel.recorrido[idx].col] = 'M';
+    }
+    for (int i = 0; i < juego.tope_vehiculos; i++)
+    {
+        int idx = juego.vehiculos[i].posicion;
+        matriz_pantalla[juego.vehiculos[i].recorrido[idx].fil]
+                       [juego.vehiculos[i].recorrido[idx].col] = 'A';
+    }
+    matriz_pantalla[juego.homero.posicion.fil][juego.homero.posicion.col] = 'H';
 
-  printf("\n=========================================\n");
-  printf(" Nafta disponible: %d L | Movimientos: %d\n", juego.homero.nafta,
-         juego.movs_realizados);
-  printf(" ¿Tiene el ancla?: %s\n", juego.homero.recolecto_ancla ? "SÍ" : "NO");
-  printf(" Grúas: %d | Policías: %d | Turbos: %d\n",
-         juego.homero.gruas_disponibles, juego.homero.policias_disponibles,
-         juego.homero.turbos_disponibles);
-  printf("=========================================\n");
+    for (int fila = 0; fila < MAX_FILAS; fila++)
+    {
+        for (int columna = 0; columna < MAX_COLUMNAS; columna++)
+        {
+            printf("%c ", matriz_pantalla[fila][columna]);
+        }
+        printf("\n");
+    }
+
+    printf("\n=========================================\n");
+    printf(" Nafta disponible: %d L | Movimientos: %d\n", juego.homero.nafta,
+           juego.movs_realizados);
+    printf(" ¿Tiene el ancla?: %s\n", juego.homero.recolecto_ancla ? "SÍ" : "NO");
+    printf(" Grúas: %d | Policías: %d | Turbos: %d\n",
+           juego.homero.gruas_disponibles, juego.homero.policias_disponibles,
+           juego.homero.turbos_disponibles);
+    printf("=========================================\n");
 }
 
 /*
@@ -1282,45 +1461,53 @@ void mostrar_juego(juego_t juego) {
  * de nafta o victoria del monorriel) o 0 si la partida sigue en curso.
  */
 
-int estado_juego(juego_t juego) {
-  const int JUEGO_GANADO = 1;
-  const int JUEGO_PERDIDO = -1;
-  const int JUEGO_SIGUE = 0;
+int estado_juego(juego_t juego)
+{
+    const int JUEGO_GANADO = 1;
+    const int JUEGO_PERDIDO = -1;
+    const int JUEGO_SIGUE = 0;
 
-  coordenada_t pos_h = juego.homero.posicion;
-  coordenada_t meta_estacion = {1, 1};
+    coordenada_t pos_h = juego.homero.posicion;
+    coordenada_t meta_estacion = {1, 1};
 
-  if (juego.homero.recolecto_ancla && pos_h.fil == meta_estacion.fil &&
-      pos_h.col == meta_estacion.col) {
-    return JUEGO_GANADO;
-  }
-
-  int idx_cabeza = juego.monorriel.posiciones[0];
-  coordenada_t pos_cabeza_m = juego.monorriel.recorrido[idx_cabeza];
-
-  if (pos_cabeza_m.fil == meta_estacion.fil &&
-      pos_cabeza_m.col == meta_estacion.col && juego.movs_realizados > 0) {
-    return JUEGO_PERDIDO;
-  }
-
-  if (juego.homero.nafta <= 0) {
-    return JUEGO_PERDIDO;
-  }
-
-  for (int i = 0; i < juego.monorriel.tope_posiciones; i++) {
-    int idx_vagon = juego.monorriel.posiciones[i];
-    coordenada_t pos_vagon = juego.monorriel.recorrido[idx_vagon];
-    if (pos_h.fil == pos_vagon.fil && pos_h.col == pos_vagon.col) {
-      return JUEGO_PERDIDO;
+    if (juego.homero.recolecto_ancla && pos_h.fil == meta_estacion.fil &&
+        pos_h.col == meta_estacion.col)
+    {
+        return JUEGO_GANADO;
     }
-  }
 
-  for (int i = 0; i < juego.tope_vehiculos; i++) {
-    int idx_auto = juego.vehiculos[i].posicion;
-    coordenada_t pos_auto = juego.vehiculos[i].recorrido[idx_auto];
-    if (pos_h.fil == pos_auto.fil && pos_h.col == pos_auto.col) {
-      return JUEGO_PERDIDO;
+    int idx_cabeza = juego.monorriel.posiciones[0];
+    coordenada_t pos_cabeza_m = juego.monorriel.recorrido[idx_cabeza];
+
+    if (pos_cabeza_m.fil == meta_estacion.fil &&
+        pos_cabeza_m.col == meta_estacion.col && juego.movs_realizados > 0)
+    {
+        return JUEGO_PERDIDO;
     }
-  }
-  return JUEGO_SIGUE;
+
+    if (juego.homero.nafta <= 0)
+    {
+        return JUEGO_PERDIDO;
+    }
+
+    for (int i = 0; i < juego.monorriel.tope_posiciones; i++)
+    {
+        int idx_vagon = juego.monorriel.posiciones[i];
+        coordenada_t pos_vagon = juego.monorriel.recorrido[idx_vagon];
+        if (pos_h.fil == pos_vagon.fil && pos_h.col == pos_vagon.col)
+        {
+            return JUEGO_PERDIDO;
+        }
+    }
+
+    for (int i = 0; i < juego.tope_vehiculos; i++)
+    {
+        int idx_auto = juego.vehiculos[i].posicion;
+        coordenada_t pos_auto = juego.vehiculos[i].recorrido[idx_auto];
+        if (pos_h.fil == pos_auto.fil && pos_h.col == pos_auto.col)
+        {
+            return JUEGO_PERDIDO;
+        }
+    }
+    return JUEGO_SIGUE;
 }
