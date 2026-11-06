@@ -73,9 +73,9 @@ bool es_posicion_dentro_del_rango(coordenada_t posicion)
 }
 
 /*
- * Pre condiciones:/*
- -> El vector de 'calles' debe estar inicializado.
--> El valor de 'tope_calles' debe ser > 0.
+ * Pre condiciones:
+El vector de 'calles' debe estar inicializado.
+El valor de 'tope_calles' debe ser > 0.
  * Post condiciones: Devuelve true si la coordenada coincide con alguna calle registrada en el vector, o false en caso contrario.
  */
 bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles, coordenada_t posicion)
@@ -96,13 +96,11 @@ bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles, coordenada_t pos
     return en_calle;
 }
 
-/*El enunciado dice una regla: Tienen que estar al lado de una calle (adyacentes),
-pero NO pueden estar encima de la calle (tienen que construirse sobre la vereda o el pasto, que es el terreno 'X').*/
 /*
- * Pre condiciones:/*
+Pre condiciones:
  -> El vector de 'calles' debe estar inicializado.
--> El valor de 'tope_calles' debe ser > 0.*/
-/* Post condiciones: Devuelve true si la coordenada "posicion" NO es una calle y hay al menos una calle en el vector de
+-> El valor de 'tope_calles' debe ser > 0.
+Post condiciones: Devuelve true si la coordenada "posicion" NO es una calle y hay al menos una calle en el vector de
 calles en la que la distancia Manhattan con respecto a "posicion" es igual a 1.
 Devuelve false en caso contrario ( si "posicion" ya es una calle o si se encuentra a una distancia mayor de todas las
 calles)
@@ -278,7 +276,9 @@ void inicializar_personajes(personaje_t *personaje)
         return;
     personaje->posicion.fil = FIL_INICIAL_HOMERO;
     personaje->posicion.col = COL_INICIAL_HOMERO;
-    personaje->recolecto_ancla = false;
+
+    void inicializar_objetos_herramientas(personaje_t * personaje)
+        personaje->recolecto_ancla = false;
     personaje->gruas_disponibles = CANT_INICIAL_GRUAS;
     personaje->policias_disponibles = CANT_INICIAL_POLICIAS;
     personaje->turbos_disponibles = CANT_INICIAL_TURBOS;
@@ -317,27 +317,27 @@ void inicializar_monorriel(monorriel_t *monorriel)
         return;
     int t = 0;
 
-    for (int f = POS_MIN_MONORRIEL; f < POS_MAX_FIL_MONORRIEL; f++)
+    for (int f = POS_MIN_FIL_MONORRIEL; f < POS_MAX_FIL_MONORRIEL; f++)
     {
         monorriel->recorrido[t].fil = f;
-        monorriel->recorrido[t].col = POS_MIN_MONORRIEL;
+        monorriel->recorrido[t].col = POS_MIN_COL_MONORRIEL;
         t++;
     }
-    for (int c = POS_MIN_MONORRIEL; c < POS_MAX_COL_MONORRIEL; c++)
+    for (int c = POS_MIN_COL_MONORRIEL; c < POS_MAX_COL_MONORRIEL; c++)
     {
         monorriel->recorrido[t].fil = POS_MAX_FIL_MONORRIEL;
         monorriel->recorrido[t].col = c;
         t++;
     }
-    for (int f = POS_MAX_FIL_MONORRIEL; f > POS_MIN_MONORRIEL; f--)
+    for (int f = POS_MAX_FIL_MONORRIEL; f > POS_MIN_FIL_MONORRIEL; f--)
     {
         monorriel->recorrido[t].fil = f;
         monorriel->recorrido[t].col = POS_MAX_COL_MONORRIEL;
         t++;
     }
-    for (int c = POS_MAX_COL_MONORRIEL; c > POS_MIN_MONORRIEL; c--)
+    for (int c = POS_MAX_COL_MONORRIEL; c > POS_MIN_FIL_MONORRIEL; c--)
     {
-        monorriel->recorrido[t].fil = POS_MIN_MONORRIEL;
+        monorriel->recorrido[t].fil = POS_MIN_FIL_MONORRIEL;
         monorriel->recorrido[t].col = c;
         t++;
     }
