@@ -4,6 +4,11 @@
 #include "hitrun.h"
 #include "utiles.h"
 
+const int MIN_FIL_POSICION = 0;
+const int MIN_COL_POSICION = 0;
+const int MAX_FIL_POSICION = 24;
+const int MAX_COL_POSICION = 24;
+
 const int FIL_INICIAL_HOMERO = 19;
 const int COL_INICIAL_HOMERO = 19;
 const int CANT_INICIAL_NAFTA = 100;
@@ -21,8 +26,9 @@ const int VEL_MIN_AUTO = 1;
 const int MOV_FRENADO_INICIAL = 0;
 const int FRECUENCIA_NUEVO_AUTO = 5;
 
-const int POS_MIN_MONORRIEL = 1;
+const int POS_MIN_FIL_MONORRIEL = 1;
 const int POS_MAX_FIL_MONORRIEL = 23;
+const int POS_MIN_COL_MONORRIEL = 1;
 const int POS_MAX_COL_MONORRIEL = 23;
 const int CANT_VAGONES = 4;
 
@@ -36,66 +42,86 @@ const char TIPO_ESTACION = 'E';
 const char TIPO_SEMAFORO = 'S';
 const char TIPO_ANCLA = 'C';
 
-
-int busca_indice_calle(coordenada_t posiciones[MAX_CALLESM, int ])
-
+/* Pre condiciones: -*/
+/* Post condiciones: Devuelve -true si los valores de la posicion1 (fila, columna) coincide con los valores de la posicion2 (fila, columna).
+Devuelve -false- en caso contrario */
+bool son_posiciones_iguales(coordenada_t posicion1, coordenada_t posicion2)
+{
+    return (posicion1.fil == posicion2.fil && posicion1.col == posicion2.col);
+}
 
 /*
  * Pre condiciones:
+ * Post condiciones: Devuelve la distancia Manhattan (la distancia entre ellos es la suma de los valores absolutos
+ * de las diferencias de las coordenadas)
+ */
+int distancia_manhattan(coordenada_t posicion1, coordenada_t posicion2)
+{
+    int distancia_filas = abs(posicion1.fil - posicion2.fil);
+    int distancia_columnas = abs(posicion1.col - posicion2.col);
+    return distancia_filas + distancia_columnas;
+}
+
+/*
+ * Pre condiciones: -
+ * Post condiciones: Devuelve true si la coordenada de la posicion se encuentra dentro de los límites del terreno (0 a 24) inckusiives
+ */
+bool es_posicion_dentro_del_rango(coordenada_t posicion)
+{
+    return (posicion.fil >= MIN_FIL_POSICION && posicion.fil <= MAX_FIL_POSICION &&
+            posicion.col >= MIN_COL_POSICION && posicion.col <= MAX_COL_POSICION);
+}
+
+/*
+ * Pre condiciones:/*
+ -> El vector de 'calles' debe estar inicializado.
+-> El valor de 'tope_calles' debe ser > 0.
  * Post condiciones: Devuelve true si la coordenada coincide con alguna calle registrada en el vector, o false en caso contrario.
  */
-bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles, coordenada_t posicion){
+bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles, coordenada_t posicion)
+{
     bool en_calle = false;
     int indice_calle = 0;
-    while (!en_calle && (indice_calle < tope_calles)){
-        if (calles[indice_calle].fil == posicion.fil && (calles[indice_calle]).col == posicion.col){
+    while (!en_calle && (indice_calle < tope_calles))
+    {
+        if (son_posiciones_iguales(calles[indice_calle], posicion))
+        {
             en_calle = true;
         }
-        indice_calle++;
+        else
+        {
+            indice_calle++;
+        }
     }
     return en_calle;
 }
 
-/*
- * Pre condiciones: 'pos' debe ser una coordenada válida del terreno. 'calles' debe estar inicializado con un tope válido.
- * Post condiciones: Devuelve true si la coordenada está sobre terreno 'X' (no calle) y limita directamente (arriba, abajo, izq, der) con al menos una calle.
- */
-
-bool coordenada_dentro_del_rango(coordenada_t posicion)
-{
-    return (posicion.fil >= 0 && posicion.fil < MAX_FILAS && posicion.col < MAX_COLUMNAS);
-}
-
-
-void inicializar_celdas_vecinas(coordenada_t posicion, coordenada_t celdas_vecinas[CANT_DIRRCCIONES_CELDAS]) {
-    celdas_vecinas[0].fil = posicion.fil - 1; // Arriba
-    celdas_vecinas[0].col = posicion.col;
-
-    celdas_vecinas[1].fil = posicion.fil + 1; // Abajo
-    celdas_vecinas[1].col = posicion.col;
-
-    celdas_vecinas[2].fil = posicion.fil;     // Izquierda
-    celdas_vecinas[2].col = posicion.col - 1;
-
-    celdas_vecinas[3].fil = posicion.fil;     // Derecha
-    celdas_vecinas[3].col = posicion.col + 1;
-}
 /*El enunciado dice una regla: Tienen que estar al lado de una calle (adyacentes),
 pero NO pueden estar encima de la calle (tienen que construirse sobre la vereda o el pasto, que es el terreno 'X').*/
-bool es_calle_vecina(coordenada_t posicion, coordenada_t calles[MAX_CALLES], int tope_calles){
-    bool es_vecina = false;
-    if (!es_calle(calles, tope_calles, posicion)){ // si no es una calle //
-        coordenada_t celdas_vecinas[CANT_DIRRCCIONES_CELDAS];
-        inicializar_celdas_vecinas(posicion, celdas_vecinas); 
+/*
+ * Pre condiciones:/*
+ -> El vector de 'calles' debe estar inicializado.
+-> El valor de 'tope_calles' debe ser > 0.*/
+/* Post condiciones: Devuelve true si la coordenada "posicion" NO es una calle y hay al menos una calle en el vector de
+calles en la que la distancia Manhattan con respecto a "posicion" es igual a 1.
+Devuelve false en caso contrario ( si "posicion" ya es una calle o si se encuentra a una distancia mayor de todas las
+calles)
+ */
 
+bool es_calle_vecina(coordenada_t posicion, coordenada_t calles[MAX_CALLES], int tope_calles)
+{
+    bool es_vecina = false;
+    if (!es_calle(calles, tope_calles, posicion))
+    { // si no es una calle //
         int i = 0;
-        while (!es_vecina && (i < CANT_DIRRCCIONES_CELDAS)){
-            if (coordenada_dentro_del_rango(celdas_vecinas[i])){
-                if (es_calle(calles, tope_calles, celdas_vecinas[i])){
-                    es_vecina = true;
-                }
+        while (!es_vecina && (i < tope_calles))
+        {
+            if (distancia_manhattan(posicion, calles[i]) == 1)
+            {
+                es_vecina = true;
             }
-            if (!es_vecina){
+            else
+            {
                 i++;
             }
         }
@@ -103,90 +129,143 @@ bool es_calle_vecina(coordenada_t posicion, coordenada_t calles[MAX_CALLES], int
     return es_vecina;
 }
 
-/*
- * Pre condiciones: Recibe dos estructuras de tipo coordenada_t válidas.
- * Post condiciones: Devuelve la distancia Manhattan (suma de las diferencias absolutas de sus ejes) entre ambos puntos.
- */
-int distancia_manhattan(coordenada_t pos1, coordenada_t pos2)
+/* *Pre condiciones: -
+ * Post condiciones: Devuelve true si la coordenada coincide exactamente con alguna de las 4 esquinas del
+ monorriel (1,1), (1,23), (23,23) o (23,1). */
+bool es_esquina_monorriel(coordenada_t posicion)
 {
-    return abs(pos1.fil - pos2.fil) + abs(pos1.col - pos2.col);
+    return (posicion.fil == POS_MIN_FIL_MONORRIEL && posicion.col == POS_MIN_COL_MONORRIEL) || // (1,1)
+           (posicion.fil == POS_MIN_FIL_MONORRIEL && posicion.col == POS_MAX_COL_MONORRIEL) || // (1,23)
+           (posicion.fil == POS_MAX_FIL_MONORRIEL && posicion.col == POS_MAX_COL_MONORRIEL) || // (23,23)
+           (posicion.fil == POS_MAX_FIL_MONORRIEL && posicion.col == POS_MIN_COL_MONORRIEL);   //(23,1)
+}
+
+/*Pre condiciones : El monorriel debe tener su recorrido cargadp en la memoria (el vector de coordenadas)
+El tope del recorrido del monorriel debe ser mayor a 0.
+Post condiciones: Devuelve true si la fila y columna de alguna de las posiciones del recorrido del monorriel
+coincide exactamente con la fila y columna de la coordenada "posicion"  pasada por paramtero.
+Devuelve false en caso contrario
+*/
+bool es_recorrido_monorriel(coordenada_t posicion, monorriel_t monorriel)
+{
+    bool encontrado = false;
+    int i = 0;
+    while (!encontrado && (i < monorriel.tope_recorrido))
+    {
+        if (son_posiciones_iguales(monorriel.recorrido[i], posicion))
+        {
+            encontrado = true;
+        }
+        else
+        {
+            i++;
+        }
+    }
+    return encontrado;
+}
+
+/*Pre condiciones : El vector de vehiculos debe estar correctamente inicializado
+int* tope_vehiculos debe apuntar a un valor entero válido mayor a 0
+El valor de poscion_vehiculo debe ser un numero valido menor al valor de *tope_vehiculos.
+
+Post condiciones: Elimina el vehiculo que se enceuntra en el indice de "posicion_vehiculo".
+La posicion en la que se encontraba el auto a quitar paasa a ser ocupado por el auto que se encuentra
+en la posicion siguiente.
+Restamos 1 por cada auto quitado en puntero *tope_vehiculos.
+*/
+
+void eliminar_vehiculo(vehiculo_t vehiculos[MAX_AUTOS], int *tope_vehiculos, int posicion_vehiculo)
+{
+    int i = posicion_vehiculo;
+
+    while (i < (*tope_vehiculos) - 1)
+    {
+        vehiculos[i] = vehiculos[i + 1];
+        i++;
+    }
+
+    (*tope_vehiculos) -= 1;
 }
 
 /*
- * Pre condiciones: 'pos' debe ser una estructura coordenada_t válida dentro de los límites del juego.
- * Post condiciones: Devuelve true si la coordenada coincide exactamente con alguna de las 4 esquinas del circuito periférico por donde transita el monorriel, o false en caso contrario.
+ * Pre condiciones: - Los punteros posicion_inicio y posicion_fin deben apuntar a valores enterors validos
+ * Post condiciones: Compara los valores de "coordenada_homero" y "coordenada_auto" y guarda el menor en la
+ * direccion de memoria apuntada por "posicion_inicio" y "posicion_fin"
  */
-bool es_esquina_monorriel(coordenada_t pos)
+void obtener_extremos_tramo(int coordenada_homero, int coordenada_auto, int *posicion_inicio, int *posicion_fin)
 {
-    return (pos.fil == POS_MIN_MONORRIEL && pos.col == POS_MIN_MONORRIEL) ||
-           (pos.fil == POS_MIN_MONORRIEL && pos.col == POS_MAX_COL_MONORRIEL) ||
-           (pos.fil == POS_MAX_FIL_MONORRIEL && pos.col == POS_MAX_COL_MONORRIEL) ||
-           (pos.fil == POS_MAX_FIL_MONORRIEL && pos.col == POS_MIN_MONORRIEL);
+    if (coordenada_homero < coordenada_auto)
+    {
+        *posicion_inicio = coordenada_homero;
+        *posicion_fin = coordenada_auto;
+    }
+    else
+    {
+        *posicion_inicio = coordenada_auto;
+        *posicion_fin = coordenada_homero;
+    }
 }
 
 /*
- * Pre condiciones: 'pos_h' y 'pos_a' representan posiciones en la misma línea visual. 'calles' está correctamente inicializado.
- * Post condiciones: Devuelve true si el trayecto de calles entre Homero y el auto es una línea recta continua sin bloques de terreno inaccesible 'X'.
+ * Pre condiciones: 'posicion_homero' y 'posicion_auto' representan posiciones en la misma línea visual (fila o columna).
+ *                  'calles' está correctamente inicializado con un tope válido.
+ * Post condiciones: Devuelve true si el trayecto de calles entre Homero y el auto es una línea recta continua sin baches.
  */
-bool calle_es_continua(coordenada_t pos_h, coordenada_t pos_a, coordenada_t calles[MAX_CALLES], int tope_calles)
-{
-    coordenada_t test_pos = pos_h;
 
-    if (pos_h.fil == pos_a.fil)
+bool calle_es_continua(coordenada_t posicion_homero, coordenada_t posicion_auto, coordenada_t calles[MAX_CALLES], int tope_calles)
+{
+    bool es_continua = true;
+    int posicion_inicio;
+    int posicion_fin;
+
+    if (posicion_homero.fil == posicion_auto.fil)
     {
-        int inicio = (pos_h.col < pos_a.col) ? pos_h.col : pos_a.col;
-        int fin = (pos_h.col > pos_a.col) ? pos_h.col : pos_a.col;
-        for (int c = inicio + 1; c < fin; c++)
-        {
-            test_pos.col = c;
-            if (!es_calle(test_pos, calles, tope_calles))
-                return false;
-        }
+        obtener_extremos_tramo(posicion_homero.col, posicion_auto.col, &posicion_inicio, &posicion_fin);
+        es_continua = verificar_tramo_calle(posicion_inicio, posicion_fin, posicion_homero.fil, true, calles, tope_calles);
     }
-    else if (pos_h.col == pos_a.col)
+
+    else if (posicion_homero.col == posicion_auto.col)
     {
-        int inicio = (pos_h.fil < pos_a.fil) ? pos_h.fil : pos_a.fil;
-        int fin = (pos_h.fil > pos_a.fil) ? pos_h.fil : pos_a.fil;
-        for (int f = inicio + 1; f < fin; f++)
-        {
-            test_pos.fil = f;
-            if (!es_calle(test_pos, calles, tope_calles))
-                return false;
-        }
+        obtener_extremos_tramo(posicion_homero.fil, posicion_auto.fil, &posicion_inicio, &posicion_fin);
+        es_continua = verificar_tramo_calle(posicion_inicio, posicion_fin, posicion_homero.col, false, calles, tope_calles);
     }
-    return true;
+    return es_continua;
 }
 
-bool es_recorrido_monorriel(coordenada_t pos, monorriel_t monorriel)
-{
-    for (int i = 0; i < monorriel.tope_recorrido; i++)
-    {
-        if (monorriel.recorrido[i].fil == pos.fil && monorriel.recorrido[i].col == pos.col)
-        {
-            return true;
-        }
-    }
-    return false;
-}
+/*
+ * Pre condiciones: - El puntero juego debe apuntar a una estructura "juego_t" corretamente inicializada.
+ El juego debe tener cargado los datos de Homero, el monorriel y el vector de objetos con un tope valido.
 
-bool posicion_ocupada(coordenada_t pos, juego_t *juego)
+ * Post condiciones: Dvuelve true si la coordenada posicion coincide con la ubicacion actual de homero,
+ con cualquier celda que compone el recorrido del monoiel o la posicion de algun objeto ya existente.
+ Devuelve False en caso contrario (si el casillero consultado se encuentre libre).
+ */
+
+bool posicion_ocupada(coordenada_t posicion, juego_t *juego)
 {
-    if (juego->homero.posicion.fil == pos.fil && juego->homero.posicion.col == pos.col)
+    bool ocupada = false;
+    if (son_posiciones_iguales(juego->homero.posicion, posicion))
     {
-        return true;
+        ocupada = true;
     }
-    if (es_recorrido_monorriel(pos, juego->monorriel))
+    if (!ocupada && es_recorrido_monorriel(posicion, juego->monorriel))
     {
-        return true;
+        ocupada = true;
     }
-    for (int i = 0; i < juego->tope_objetos; i++)
+
+    int i = 0;
+    while (!ocupada && (i < juego->tope_objetos))
     {
-        if (juego->objetos[i].posicion.fil == pos.fil && juego->objetos[i].posicion.col == pos.col)
+        if (son_posiciones_iguales(juego->objetos[i].posicion, posicion))
         {
-            return true;
+            ocupada = true;
+        }
+        else
+        {
+            i++;
         }
     }
-    return false;
+    return ocupada;
 }
 
 /*
