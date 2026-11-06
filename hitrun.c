@@ -13,6 +13,7 @@ const int CANT_INICIAL_TURBOS = 3;
 const int CANT_INICIAL_MOVS_CON_TURBO = 0;
 const int NAFTA_MAX_HOMERO = 150;
 const int NAFTA_GASTO_TURBO = 3;
+const int CANT_DIRRCCIONES_CELDAS = 4;
 
 const int CANT_INICIAL_AUTOS = 6;
 const int NAFTA_MIN_AUTO = 30;
@@ -35,51 +36,71 @@ const char TIPO_ESTACION = 'E';
 const char TIPO_SEMAFORO = 'S';
 const char TIPO_ANCLA = 'C';
 
+
+int busca_indice_calle(coordenada_t posiciones[MAX_CALLESM, int ])
+
+
 /*
- * Pre condiciones: 'posicion' debe contener coordenadas dentro o fuera del terreno. 'calles' debe estar inicializado y tener un tope válido.
+ * Pre condiciones:
  * Post condiciones: Devuelve true si la coordenada coincide con alguna calle registrada en el vector, o false en caso contrario.
  */
-bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles, coordenada_t posicion)
-{
+bool es_calle(coordenada_t calles[MAX_CALLES], int tope_calles, coordenada_t posicion){
     bool en_calle = false;
     int indice_calle = 0;
-
-    while (!en calle && (indice_calle > tope_calles))
-    {
-        if (calles[indice_calle].fil == posicion.fil && cales[indice_calle]).col == posicion.col)
-            {
-            }
+    while (!en_calle && (indice_calle < tope_calles)){
+        if (calles[indice_calle].fil == posicion.fil && (calles[indice_calle]).col == posicion.col){
+            en_calle = true;
+        }
+        indice_calle++;
     }
-    return false;
+    return en_calle;
 }
 
 /*
  * Pre condiciones: 'pos' debe ser una coordenada válida del terreno. 'calles' debe estar inicializado con un tope válido.
  * Post condiciones: Devuelve true si la coordenada está sobre terreno 'X' (no calle) y limita directamente (arriba, abajo, izq, der) con al menos una calle.
  */
-bool es_calle_adyacente(coordenada_t pos, coordenada_t calles[MAX_CALLES], int tope_calles)
+
+bool coordenada_dentro_del_rango(coordenada_t posicion)
 {
-    if (es_calle(pos, calles, tope_calles))
-        return false;
+    return (posicion.fil >= 0 && posicion.fil < MAX_FILAS && posicion.col < MAX_COLUMNAS);
+}
 
-    coordenada_t vecinos[4] = {
-        {pos.fil - 1, pos.col},
-        {pos.fil + 1, pos.col},
-        {pos.fil, pos.col - 1},
-        {pos.fil, pos.col + 1}};
 
-    for (int i = 0; i < 4; i++)
-    {
-        if (vecinos[i].fil >= 0 && vecinos[i].fil < MAX_FILAS &&
-            vecinos[i].col >= 0 && vecinos[i].col < MAX_COLUMNAS)
-        {
-            if (es_calle(vecinos[i], calles, tope_calles))
-            {
-                return true;
+void inicializar_celdas_vecinas(coordenada_t posicion, coordenada_t celdas_vecinas[CANT_DIRRCCIONES_CELDAS]) {
+    celdas_vecinas[0].fil = posicion.fil - 1; // Arriba
+    celdas_vecinas[0].col = posicion.col;
+
+    celdas_vecinas[1].fil = posicion.fil + 1; // Abajo
+    celdas_vecinas[1].col = posicion.col;
+
+    celdas_vecinas[2].fil = posicion.fil;     // Izquierda
+    celdas_vecinas[2].col = posicion.col - 1;
+
+    celdas_vecinas[3].fil = posicion.fil;     // Derecha
+    celdas_vecinas[3].col = posicion.col + 1;
+}
+/*El enunciado dice una regla: Tienen que estar al lado de una calle (adyacentes),
+pero NO pueden estar encima de la calle (tienen que construirse sobre la vereda o el pasto, que es el terreno 'X').*/
+bool es_calle_vecina(coordenada_t posicion, coordenada_t calles[MAX_CALLES], int tope_calles){
+    bool es_vecina = false;
+    if (!es_calle(calles, tope_calles, posicion)){ // si no es una calle //
+        coordenada_t celdas_vecinas[CANT_DIRRCCIONES_CELDAS];
+        inicializar_celdas_vecinas(posicion, celdas_vecinas); 
+
+        int i = 0;
+        while (!es_vecina && (i < CANT_DIRRCCIONES_CELDAS)){
+            if (coordenada_dentro_del_rango(celdas_vecinas[i])){
+                if (es_calle(calles, tope_calles, celdas_vecinas[i])){
+                    es_vecina = true;
+                }
+            }
+            if (!es_vecina){
+                i++;
             }
         }
     }
-    return false;
+    return es_vecina;
 }
 
 /*
