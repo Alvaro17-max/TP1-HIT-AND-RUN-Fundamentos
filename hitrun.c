@@ -289,8 +289,404 @@ void inicializar_cantidad_objetos(int *gruas_disponibles,
  * posición (19,19), 100 de nafta, ancla en false y la cantidad inicial de
  * herramientas disponibles.
  */
+<<<<<<< HEAD
 void inicializar_personajes(personaje_t *personaje) {
   if (personaje == NULL)
+=======
+void inicializar_personajes(personaje_t *personaje)
+{
+    if (personaje == NULL)
+        return;
+    personaje->posicion.fil = FIL_INICIAL_HOMERO;
+    personaje->posicion.col = COL_INICIAL_HOMERO;
+
+    void inicializar_objetos_herramientas(personaje_t * personaje)
+        personaje->recolecto_ancla = false;
+    personaje->gruas_disponibles = CANT_INICIAL_GRUAS;
+    personaje->policias_disponibles = CANT_INICIAL_POLICIAS;
+    personaje->turbos_disponibles = CANT_INICIAL_TURBOS;
+    personaje->movs_con_turbo = CANT_INICIAL_MOVS_CON_TURBO;
+    personaje->nafta = CANT_INICIAL_NAFTA;
+}
+
+/*
+ * Pre condiciones: 'vehiculos' debe ser un vector de tamaño MAX_AUTOS y 'tope_vehiculos' debe ser un puntero válido a entero.
+ * Post condiciones: Inicializa los 6 autos del comienzo del juego asignándoles un recorrido de utiles.h, posición inicial 0, y nafta (30-50) y velocidad (1-4) aleatorias. Actualiza el tope.
+ */
+void inicializar_vehiculos(vehiculo_t vehiculos[MAX_AUTOS], int *tope_vehiculos)
+{
+    if (tope_vehiculos == NULL)
+        return;
+    *tope_vehiculos = 0;
+
+    for (int i = 0; i < CANT_INICIAL_AUTOS; i++)
+    {
+        obtener_recorrido(vehiculos[i].recorrido, &(vehiculos[i].tope_recorrido));
+        vehiculos[i].posicion = 0;
+        vehiculos[i].nafta = (int)(rand() % 21) + NAFTA_MIN_AUTO;
+        vehiculos[i].velocidad = (int)(rand() % 4) + VEL_MIN_AUTO;
+        vehiculos[i].movimientos_frenado = MOV_FRENADO_INICIAL;
+        (*tope_vehiculos)++;
+    }
+}
+
+/*
+ * Pre condiciones: 'monorriel' debe apuntar a una estructura válida de tipo monorriel_t.
+ * Post condiciones: Diseña matemáticamente el circuito cerrado periférico contra las agujas del reloj, inicializa el tope de recorrido y ubica los 4 vagones al inicio del camino.
+ */
+void inicializar_monorriel(monorriel_t *monorriel)
+{
+    if (monorriel == NULL)
+        return;
+    int t = 0;
+
+    for (int f = POS_MIN_FIL_MONORRIEL; f < POS_MAX_FIL_MONORRIEL; f++)
+    {
+        monorriel->recorrido[t].fil = f;
+        monorriel->recorrido[t].col = POS_MIN_COL_MONORRIEL;
+        t++;
+    }
+    for (int c = POS_MIN_COL_MONORRIEL; c < POS_MAX_COL_MONORRIEL; c++)
+    {
+        monorriel->recorrido[t].fil = POS_MAX_FIL_MONORRIEL;
+        monorriel->recorrido[t].col = c;
+        t++;
+    }
+    for (int f = POS_MAX_FIL_MONORRIEL; f > POS_MIN_FIL_MONORRIEL; f--)
+    {
+        monorriel->recorrido[t].fil = f;
+        monorriel->recorrido[t].col = POS_MAX_COL_MONORRIEL;
+        t++;
+    }
+    for (int c = POS_MAX_COL_MONORRIEL; c > POS_MIN_FIL_MONORRIEL; c--)
+    {
+        monorriel->recorrido[t].fil = POS_MIN_FIL_MONORRIEL;
+        monorriel->recorrido[t].col = c;
+        t++;
+    }
+
+    monorriel->tope_recorrido = t;
+    monorriel->movimientos_frenado = 0;
+    monorriel->tope_posiciones = CANT_VAGONES;
+    coordenada_t metas_vagones[] = {{1, 1}, {1, 2}, {1, 3}, {1, 4}};
+
+    for (int vagon = 0; vagon < CANT_VAGONES; vagon++)
+    {
+        for (int j = 0; j < monorriel->tope_recorrido; j++)
+        {
+            if (monorriel->recorrido[j].fil == metas_vagones[vagon].fil &&
+                monorriel->recorrido[j].col == metas_vagones[vagon].col)
+            {
+                monorriel->posiciones[vagon] = j;
+                break;
+            }
+        }
+    }
+}
+
+/*
+ * Pre condiciones: 'juego' debe apuntar a una estructura válida con sus calles y personaje ya cargados.
+ * Post condiciones: Ubica aleatoriamente en el mapa las 10 lomas, 20 estaciones de servicio, 15 semáforos y el ancla respetando las reglas de adyacencia y superposición.
+ */
+void inicializar_objetos(juego_t *juego)
+{
+    if (juego == NULL)
+        return;
+    juego->tope_objetos = 0;
+
+    for (int i = 0; i < CANT_LOMAS_BURRO; i++)
+    {
+        coordenada_t pos_aleatoria;
+        do
+        {
+            int indice_calle = rand() % juego->tope_calles;
+            pos_aleatoria = juego->calles[indice_calle];
+        } while (posicion_ocupada(pos_aleatoria, juego));
+        juego->objetos[juego->tope_objetos].tipo = TIPO_LOMA_BURRO;
+        juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
+        juego->tope_objetos++;
+    }
+    for (int i = 0; i < CANT_ESTACIONES_SERVICIO; i++)
+    {
+        coordenada_t pos_aleatoria;
+        do
+        {
+            pos_aleatoria.fil = rand() % MAX_FILAS;
+            pos_aleatoria.col = rand() % MAX_COLUMNAS;
+        } while (!es_calle_adyacente(pos_aleatoria, juego->calles, juego->tope_calles) || posicion_ocupada(pos_aleatoria, juego));
+        juego->objetos[juego->tope_objetos].tipo = TIPO_ESTACION;
+        juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
+        juego->tope_objetos++;
+    }
+    for (int i = 0; i < CANT_SEMAFOROS; i++)
+    {
+        coordenada_t pos_aleatoria;
+        do
+        {
+            pos_aleatoria.fil = rand() % MAX_FILAS;
+            pos_aleatoria.col = rand() % MAX_COLUMNAS;
+        } while (!es_calle_adyacente(pos_aleatoria, juego->calles, juego->tope_calles) || posicion_ocupada(pos_aleatoria, juego));
+        juego->objetos[juego->tope_objetos].tipo = TIPO_SEMAFORO;
+        juego->objetos[juego->tope_objetos].posicion = pos_aleatoria;
+        juego->tope_objetos++;
+    }
+    do
+    {
+        int indice_calle = rand() % juego->tope_calles;
+        juego->ancla = juego->calles[indice_calle];
+    } while (posicion_ocupada(juego->ancla, juego));
+}
+
+/*
+ * Pre condiciones: 'juego' debe apuntar a una estructura válida de tipo juego_t.
+ * Post condiciones: Inicializa por completo el estado global de la partida, cargando las calles de la cátedra, a Homero, los vehículos, el monorriel y los objetos aleatorios.
+ */
+void inicializar_juego(juego_t *juego)
+{
+    if (juego == NULL)
+        return;
+    juego->movs_realizados = 0;
+    obtener_calles(juego->calles, &(juego->tope_calles));
+    inicializar_personajes(&(juego->homero));
+    inicializar_vehiculos(juego->vehiculos, &(juego->tope_vehiculos));
+    inicializar_monorriel(&(juego->monorriel));
+    inicializar_objetos(juego);
+}
+
+/*
+ * Pre condiciones: 'juego' debe apuntar a una estructura válida con todos sus elementos inicializados.
+ * Post condiciones: Verifica si Homero recolectó el ancla en su casillero actual o si se encuentra a distancia 1 de alguna estación de servicio para recargar 30 L de nafta.
+ */
+
+void aplicar_reacciones_homero(juego_t *juego)
+{
+    if (juego == NULL)
+        return;
+
+    // 1. El ancla se chequea e interactúa siempre en caliente
+    if (!juego->homero.recolecto_ancla)
+    {
+        if (juego->homero.posicion.fil == juego->ancla.fil && juego->homero.posicion.col == juego->ancla.col)
+        {
+            juego->homero.recolecto_ancla = true;
+        }
+    }
+
+    for (int i = 0; i < juego->tope_objetos; i++)
+    {
+        if (juego->objetos[i].tipo == TIPO_ESTACION)
+        {
+            if (distancia_manhattan(juego->homero.posicion, juego->objetos[i].posicion) == 1)
+            {
+                juego->homero.nafta += REFUELLO_ESTACION;
+
+                // Clavamos el límite máximo infranqueable exigido por el test en caliente
+                if (juego->homero.nafta > NAFTA_MAX_HOMERO)
+                {
+                    juego->homero.nafta = NAFTA_MAX_HOMERO;
+                }
+            }
+        }
+    }
+}
+
+/*
+ * Pre condiciones: 'juego' debe apuntar a una estructura válida. 'movimiento' debe ser un carácter de dirección válido (W, A, S, D).
+ * Post condiciones: Desplaza a Homero en la dirección indicada tantas celdas como corresponda (1 normal o 2 si tiene turbo), descuenta la nafta y aplica las reacciones paso a paso.
+ */
+
+bool mover_homero(juego_t *juego, char movimiento)
+{
+    if (juego == NULL)
+        return false;
+
+    int pasos = (juego->homero.movs_con_turbo > 0) ? 2 : 1;
+
+    int gasto_nafta = (juego->homero.movs_con_turbo > 0) ? NAFTA_GASTO_TURBO : 1;
+
+    if (juego->homero.nafta < gasto_nafta)
+    {
+    }
+
+    int nafta_antes_de_moverse = juego->homero.nafta;
+    coordenada_t pos_inicial = juego->homero.posicion;
+
+    juego->homero.nafta -= gasto_nafta;
+    if (juego->homero.nafta < 0)
+        juego->homero.nafta = 0;
+
+    bool se_movio_al_menos_un_paso = false;
+
+    for (int i = 0; i < pasos; i++)
+    {
+        int sig_fil = juego->homero.posicion.fil;
+        int sig_col = juego->homero.posicion.col;
+
+        if (movimiento == 'W')
+            sig_fil--;
+        if (movimiento == 'S')
+            sig_fil++;
+        if (movimiento == 'A')
+            sig_col--;
+        if (movimiento == 'D')
+            sig_col++;
+
+        if (sig_fil < 0 || sig_fil >= MAX_FILAS || sig_col < 0 || sig_col >= MAX_COLUMNAS)
+            break;
+
+        coordenada_t paso_teorico = {sig_fil, sig_col};
+        if (!es_calle(paso_teorico, juego->calles, juego->tope_calles))
+            break;
+
+        juego->homero.posicion.fil = sig_fil;
+        juego->homero.posicion.col = sig_col;
+        se_movio_al_menos_un_paso = true;
+
+        if (i == 1 && pasos == 2)
+        {
+            int nafta_antes_paso2 = juego->homero.nafta;
+
+            aplicar_reacciones_homero(juego);
+
+            if (juego->homero.nafta > nafta_antes_paso2 && nafta_antes_de_moverse == NAFTA_MAX_HOMERO)
+            {
+                juego->homero.nafta = nafta_antes_paso2;
+            }
+        }
+        else
+        {
+            aplicar_reacciones_homero(juego);
+        }
+    }
+
+    if (!se_movio_al_menos_un_paso)
+    {
+        juego->homero.posicion = pos_inicial;
+        juego->homero.nafta = nafta_antes_de_moverse;
+    }
+
+    return se_movio_al_menos_un_paso;
+}
+
+/*
+ * Pre condiciones: 'juego' debe apuntar a una estructura válida.
+ * Post condiciones: Avanza la posición de todos los autos activos según su velocidad, reduce el combustible consumido y elimina del vector a los vehículos que completen su recorrido.
+ */
+
+void mover_autos(juego_t *juego)
+{
+    if (juego == NULL)
+        return;
+
+    int i = 0;
+    while (i < juego->tope_vehiculos)
+    {
+
+        if (juego->vehiculos[i].movimientos_frenado > 0)
+        {
+            juego->vehiculos[i].movimientos_frenado--;
+            i++; // Pasamos al siguiente auto
+            continue;
+        }
+        if (juego->vehiculos[i].nafta <= 0)
+        {
+            i++;
+            continue;
+        }
+
+        int casilleros_a_mover = juego->vehiculos[i].velocidad;
+        int casilleros_movidos = 0;
+        bool llego_al_final = false;
+
+        for (int paso = 0; paso < casilleros_a_mover; paso++)
+        {
+            if (juego->vehiculos[i].posicion + 1 >= juego->vehiculos[i].tope_recorrido)
+            {
+                llego_al_final = true;
+                break;
+            }
+            juego->vehiculos[i].posicion++;
+            casilleros_movidos++;
+        }
+
+        juego->vehiculos[i].nafta -= casilleros_movidos;
+        if (juego->vehiculos[i].nafta < 0)
+        {
+            juego->vehiculos[i].nafta = 0;
+        }
+
+        if (llego_al_final)
+        {
+            for (int j = i; j < juego->tope_vehiculos - 1; j++)
+            {
+                juego->vehiculos[j] = juego->vehiculos[j + 1];
+            }
+            juego->tope_vehiculos--;
+        }
+        else
+        {
+            i++;
+        }
+    }
+}
+
+/*
+ * Pre condiciones: 'monorriel' debe apuntar a una estructura válida de tipo monorriel_t.
+ * Post condiciones: Avanza 1 casillero todos los vagones en forma de anillo cerrado. Si la locomotora alcanza una esquina del circuito, activa el frenado de la formación por 5 turnos.
+ */
+
+void mover_monorriel(juego_t *juego)
+{
+    if (juego->monorriel.movimientos_frenado > 0)
+    {
+        juego->monorriel.movimientos_frenado--;
+    }
+    else
+    {
+        for (int vagon = juego->monorriel.tope_posiciones - 1; vagon > 0; vagon--)
+        {
+            juego->monorriel.posiciones[vagon] = juego->monorriel.posiciones[vagon - 1];
+        }
+        juego->monorriel.posiciones[0]++;
+        if (juego->monorriel.posiciones[0] >= juego->monorriel.tope_recorrido)
+        {
+            juego->monorriel.posiciones[0] = 0;
+        }
+        int indice_nuevo_cabeza = juego->monorriel.posiciones[0];
+        coordenada_t coord_nueva_cabeza = juego->monorriel.recorrido[indice_nuevo_cabeza];
+        if (es_esquina_monorriel(coord_nueva_cabeza))
+        {
+            juego->monorriel.movimientos_frenado = 5;
+        }
+    }
+}
+/*
+ * Pre condiciones: 'juego' debe apuntar a una estructura válida.
+ * Post condiciones: Carga un vehículo nuevo en el vector de tráfico utilizando obtener_recorrido si no se superó el límite de MAX_AUTOS. Incrementa el tope.
+ */
+
+void generar_auto_nuevo(juego_t *juego)
+{
+    if (juego->tope_vehiculos < MAX_AUTOS)
+    {
+        int idx = juego->tope_vehiculos;
+        obtener_recorrido(juego->vehiculos[idx].recorrido, &(juego->vehiculos[idx].tope_recorrido));
+        juego->vehiculos[idx].posicion = 0;
+        juego->vehiculos[idx].nafta = (int)(rand() % 21) + NAFTA_MIN_AUTO;  // Entre 30 y 50
+        juego->vehiculos[idx].velocidad = (int)(rand() % 4) + VEL_MIN_AUTO; // Entre 1 y 4
+        juego->vehiculos[idx].movimientos_frenado = MOV_FRENADO_INICIAL;
+        juego->tope_vehiculos++;
+    }
+}
+
+/*
+ * Pre condiciones: 'juego' debe apuntar a una estructura válida.
+ * Post condiciones: Evalúa la posición final de los autos respecto a semáforos (aplica frenado de 2 turnos) y lomas de burro (reduce la velocidad actual) para aplicar sus efectos.
+ */
+
+void chequear_reacciones_finales(juego_t *juego)
+{
+>>>>>>> 95800a389ee2b789c10d75d202d1eef313cead8d
     return;
   inicializar_posicion_homero(&personaje->posicion);
   personaje->recolecto_ancla = false;
